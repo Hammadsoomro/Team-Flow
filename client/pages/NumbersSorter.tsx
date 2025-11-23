@@ -15,43 +15,145 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function NumbersSorter() {
-  const { token } = useAuth();
+  const { token, isAdmin } = useAuth();
   const [inputNumbers, setInputNumbers] = useState<string>("");
   const [deduplicated, setDeduplicated] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeduplicating, setIsDeduplicating] = useState(false);
+  const [settings, setSettings] = useState({
+    lineCount: 5,
+    cooldownMinutes: 30,
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("sorterInput");
-    if (saved) setInputNumbers(saved);
+    const savedInput = localStorage.getItem("sorterInput");
+    if (savedInput) setInputNumbers(savedInput);
+
+    const savedDeduplicated = localStorage.getItem("sorterDeduplicated");
+    if (savedDeduplicated) {
+      try {
+        setDeduplicated(JSON.parse(savedDeduplicated));
+      } catch (error) {
+        console.error("Error loading deduplicated lines:", error);
+      }
+    }
   }, []);
+
+  // Load settings from server
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!token) return;
+
+      try {
+        const response = await fetch("/api/claim/settings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSettings({
+            lineCount: data.lineCount || 5,
+            cooldownMinutes: data.cooldownMinutes || 30,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      }
+    };
+
+    loadSettings();
+  }, [token]);
 
   // Save to localStorage when input changes
   useEffect(() => {
     localStorage.setItem("sorterInput", inputNumbers);
   }, [inputNumbers]);
 
-  const deduplicateLines = () => {
+  // Save deduplicated lines to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("sorterDeduplicated", JSON.stringify(deduplicated));
+  }, [deduplicated]);
+
+  const deduplicateLines = async () => {
+    if (!token) {
+      toast.error("Authentication required");
+      return;
+    }
+
     const lines = inputNumbers.split("\n").filter((line) => line.trim());
 
-    // Get first 15 words of each line for comparison
-    const getFirstWords = (text: string) => {
-      return text.split(/\s+/).slice(0, 15).join(" ");
-    };
+    if (lines.length === 0) {
+      toast.error("Please enter some numbers first");
+      return;
+    }
 
-    // Deduplicate: keep only first occurrence of each unique set of first 15 words
-    const seen = new Set<string>();
-    const unique: string[] = [];
+    try {
+      setIsDeduplicating(true);
 
-    lines.forEach((line) => {
-      const key = getFirstWords(line);
-      if (!seen.has(key)) {
-        seen.add(key);
-        unique.push(line);
+      // Fetch queued lines
+      const queuedResponse = await fetch("/api/queued", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const queuedData = queuedResponse.ok ? await queuedResponse.json() : {};
+      const queuedLines = new Set(
+        (queuedData.lines || []).map((line: any) => line.content.trim().toLowerCase())
+      );
+
+      // Fetch history entries
+      const historyResponse = await fetch("/api/history", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const historyData = historyResponse.ok
+        ? await historyResponse.json()
+        : {};
+      const historyLines = new Set(
+        (historyData.entries || []).map((entry: any) =>
+          entry.content.trim().toLowerCase()
+        )
+      );
+
+      // Get first 15 words of each line for comparison
+      const getFirstWords = (text: string) => {
+        return text.split(/\s+/).slice(0, 15).join(" ");
+      };
+
+      // Deduplicate: keep only first occurrence of each unique set of first 15 words
+      // AND exclude lines that are already in queued list or history
+      const seen = new Set<string>();
+      const unique: string[] = [];
+
+      lines.forEach((line) => {
+        const trimmedLine = line.trim().toLowerCase();
+        const key = getFirstWords(trimmedLine);
+
+        // Check if not already seen, and not in queued list or history
+        if (
+          !seen.has(key) &&
+          !queuedLines.has(trimmedLine) &&
+          !historyLines.has(trimmedLine)
+        ) {
+          seen.add(key);
+          unique.push(line);
+        }
+      });
+
+      setDeduplicated(unique);
+
+      if (unique.length === 0) {
+        toast.info("All lines already exist in Queued List or History");
+      } else {
+        toast.success(`${unique.length} unique lines after deduplication`);
       }
-    });
-
-    setDeduplicated(unique);
+    } catch (error) {
+      console.error("Error deduplicating lines:", error);
+      toast.error("Failed to deduplicate lines");
+    } finally {
+      setIsDeduplicating(false);
+    }
   };
 
   const addToQueue = async () => {
@@ -95,6 +197,43 @@ export default function NumbersSorter() {
     }
   };
 
+  const saveSettings = async () => {
+    if (!token || !isAdmin) {
+      toast.error("Admin access required");
+      return;
+    }
+
+    try {
+      setSavingSettings(true);
+      const response = await fetch("/api/claim/settings", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lineCount: Math.max(1, Math.min(100, settings.lineCount)),
+          cooldownMinutes: Math.max(
+            1,
+            Math.min(1440, settings.cooldownMinutes),
+          ),
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Settings updated successfully!");
+      } else {
+        toast.error("Failed to update settings");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update settings",
+      );
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-background via-background to-primary/5">
@@ -129,9 +268,10 @@ export default function NumbersSorter() {
                 <div className="flex gap-2">
                   <Button
                     onClick={deduplicateLines}
+                    disabled={isDeduplicating}
                     className="flex-1 bg-primary hover:bg-primary/90"
                   >
-                    Deduplicate
+                    {isDeduplicating ? "Deduplicating..." : "Deduplicate"}
                   </Button>
                   <Button
                     onClick={clearInput}
@@ -233,6 +373,90 @@ export default function NumbersSorter() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Admin Settings Section */}
+          {isAdmin && (
+            <Card className="border-primary/50 bg-primary/5">
+              <CardHeader>
+                <CardTitle>Claim Settings</CardTitle>
+                <CardDescription>
+                  Configure how many numbers users can claim at once and the
+                  cooldown time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Line Count Setting */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-foreground">
+                      Numbers per Claim
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={settings.lineCount}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            lineCount: parseInt(e.target.value) || 1,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        lines
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      How many numbers each team member can claim at once
+                      (1-100)
+                    </p>
+                  </div>
+
+                  {/* Cooldown Setting */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-foreground">
+                      Cooldown Time
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1440"
+                        value={settings.cooldownMinutes}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            cooldownMinutes: parseInt(e.target.value) || 1,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        minutes
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      How long users must wait before claiming again (1-1440
+                      minutes)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border">
+                  <Button
+                    onClick={saveSettings}
+                    disabled={savingSettings}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {savingSettings ? "Saving..." : "Save Settings"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </Layout>
