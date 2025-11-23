@@ -322,9 +322,24 @@ export default function NumbersInbox() {
 
           {/* Claimed Lines Section */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-foreground">
-              Your Claimed Lines
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">
+                Your Claimed Lines
+              </h2>
+              {claimedLines.length > 0 && (
+                <Button
+                  onClick={() => {
+                    setClaimedLines([]);
+                    localStorage.removeItem("claimedLines");
+                    toast.success("Claimed lines cleared");
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear History
+                </Button>
+              )}
+            </div>
 
             {loading ? (
               <Card className="p-8">
