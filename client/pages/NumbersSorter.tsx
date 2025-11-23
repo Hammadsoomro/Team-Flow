@@ -99,7 +99,9 @@ export default function NumbersSorter() {
 
       const queuedData = queuedResponse.ok ? await queuedResponse.json() : {};
       const queuedLines = new Set(
-        (queuedData.lines || []).map((line: any) => line.content.trim().toLowerCase())
+        (queuedData.lines || []).map((line: any) =>
+          line.content.trim().toLowerCase(),
+        ),
       );
 
       // Fetch all history entries (including team members' for deduplication)
@@ -112,8 +114,8 @@ export default function NumbersSorter() {
         : {};
       const historyLines = new Set(
         (historyData.entries || []).map((entry: any) =>
-          entry.content.trim().toLowerCase()
-        )
+          entry.content.trim().toLowerCase(),
+        ),
       );
 
       // Get first 15 words of each line for comparison
@@ -390,7 +392,8 @@ export default function NumbersSorter() {
                 <CardHeader>
                   <CardTitle>Cooldown Timer</CardTitle>
                   <CardDescription>
-                    Set the global cooldown time for team members after claiming lines
+                    Set the global cooldown time for team members after claiming
+                    lines
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -419,8 +422,8 @@ export default function NumbersSorter() {
                       <span>60 min</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      After a team member claims lines, they must wait this duration
-                      before claiming again.
+                      After a team member claims lines, they must wait this
+                      duration before claiming again.
                     </p>
                   </div>
                 </CardContent>
@@ -459,9 +462,9 @@ export default function NumbersSorter() {
                       <span>15 lines</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      When a team member clicks the claim button, they will claim this
-                      many lines from the queue. Claimed lines move immediately from
-                      Queued List to History.
+                      When a team member clicks the claim button, they will
+                      claim this many lines from the queue. Claimed lines move
+                      immediately from Queued List to History.
                     </p>
                   </div>
                 </CardContent>
@@ -476,17 +479,23 @@ export default function NumbersSorter() {
                   <div className="space-y-3">
                     <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <div className="text-sm text-blue-900 dark:text-blue-100">
-                        <p className="font-medium mb-2">Current Configuration</p>
+                        <p className="font-medium mb-2">
+                          Current Configuration
+                        </p>
                         <ul className="space-y-1">
                           <li>
                             • Global cooldown:{" "}
-                            <strong>{settings.cooldownMinutes} minute(s)</strong>
+                            <strong>
+                              {settings.cooldownMinutes} minute(s)
+                            </strong>
                           </li>
                           <li>
                             • Lines per claim:{" "}
                             <strong>{settings.lineCount} line(s)</strong>
                           </li>
-                          <li>• Claimed lines will move to History immediately</li>
+                          <li>
+                            • Claimed lines will move to History immediately
+                          </li>
                         </ul>
                       </div>
                     </div>

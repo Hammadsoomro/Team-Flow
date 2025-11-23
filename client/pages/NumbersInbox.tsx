@@ -55,7 +55,10 @@ export default function NumbersInbox() {
         const parsedLines = JSON.parse(storedClaimedLines);
         setClaimedLines(parsedLines);
       } catch (error) {
-        console.error("Failed to parse claimed lines from localStorage:", error);
+        console.error(
+          "Failed to parse claimed lines from localStorage:",
+          error,
+        );
         localStorage.removeItem("claimedLines");
       }
     }

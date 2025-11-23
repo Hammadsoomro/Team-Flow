@@ -252,7 +252,6 @@ export default function SettingsPage() {
                   <span className="hidden sm:inline">Team</span>
                 </TabsTrigger>
               )}
-
             </TabsList>
 
             {/* Profile Settings Tab */}
@@ -549,7 +548,6 @@ export default function SettingsPage() {
                 <TeamManagement token={token} />
               </TabsContent>
             )}
-
           </Tabs>
         </div>
       </div>
