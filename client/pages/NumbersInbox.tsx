@@ -173,7 +173,7 @@ export default function NumbersInbox() {
 
       const data = await response.json();
 
-      // Add claimed lines to display
+      // Add claimed lines to display (append to existing claimed lines)
       const newClaimedLines: ClaimedLine[] = data.lines.map((line: any) => ({
         _id: line._id || Math.random().toString(),
         content: line.content,
@@ -181,7 +181,7 @@ export default function NumbersInbox() {
         claimedByName: user.name,
       }));
 
-      setClaimedLines(newClaimedLines);
+      setClaimedLines([...newClaimedLines, ...claimedLines]);
 
       // Update queued lines count
       setQueuedLinesCount(Math.max(0, queuedLinesCount - data.claimedCount));
