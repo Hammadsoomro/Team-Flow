@@ -222,8 +222,8 @@ export default function NumbersInbox() {
               </div>
 
               {cooldownUntil && remainingTime && (
-                <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <div className="flex items-center gap-2 text-yellow-900 dark:text-yellow-100">
+                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-900 dark:text-red-100">
                     <Clock className="h-5 w-5" />
                     <div>
                       <p className="font-semibold">Cooldown Active</p>
@@ -238,16 +238,27 @@ export default function NumbersInbox() {
               <Button
                 onClick={handleClaimLines}
                 disabled={
-                  claiming || (cooldownUntil && remainingTime !== "") || loading
+                  claiming ||
+                  loading ||
+                  (cooldownUntil && remainingTime !== "") ||
+                  queuedLinesCount === 0
                 }
                 size="lg"
-                className="w-full bg-primary hover:bg-primary/90"
+                className={`w-full font-semibold text-base ${
+                  queuedLinesCount === 0
+                    ? "bg-gray-400 hover:bg-gray-400 text-white cursor-not-allowed"
+                    : cooldownUntil && remainingTime !== ""
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-green-500 hover:bg-green-600 text-white"
+                }`}
               >
                 {claiming
                   ? "Claiming..."
-                  : cooldownUntil && remainingTime
-                    ? `On Cooldown (${remainingTime})`
-                    : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
+                  : queuedLinesCount === 0
+                    ? "No Lines Available"
+                    : cooldownUntil && remainingTime
+                      ? `On Cooldown (${remainingTime})`
+                      : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
