@@ -49,32 +49,38 @@ export default function NumbersInbox() {
     setLoading(false);
   }, []);
 
-  // Fetch sorter settings
+  // Fetch sorter settings and queued lines
   useEffect(() => {
     if (!token) return;
 
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/sorter/settings", {
+        // Fetch settings
+        const settingsResponse = await fetch("/api/sorter/settings", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          console.error(
-            `Sorter settings API error: ${response.status} ${response.statusText}`,
-          );
-          return;
+        if (settingsResponse.ok) {
+          const data = await settingsResponse.json();
+          setCooldownMinutes(data.cooldownMinutes || 5);
+          setLinesClaim(data.linesClaim || 5);
         }
 
-        const data = await response.json();
-        setCooldownMinutes(data.cooldownMinutes || 5);
-        setLinesClaim(data.linesClaim || 5);
+        // Fetch queued lines count
+        const queuedResponse = await fetch("/api/queued", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (queuedResponse.ok) {
+          const queuedData = await queuedResponse.json();
+          setQueuedLinesCount((queuedData.lines || []).length);
+        }
       } catch (error) {
-        console.error("Error fetching sorter settings:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchSettings();
+    fetchData();
   }, [token]);
 
   // Update remaining time countdown
