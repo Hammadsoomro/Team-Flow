@@ -144,6 +144,14 @@ export default function NumbersInbox() {
     }
   }, [cooldownUntil, remainingTime]);
 
+  // Cleanup on component unmount - keep claimed lines and cooldown in localStorage
+  // They should persist across navigation
+  useEffect(() => {
+    return () => {
+      // Don't clear anything on unmount - data should persist
+    };
+  }, []);
+
   const handleClaimLines = async () => {
     if (!token || !user) {
       toast.error("You must be logged in to claim lines");
