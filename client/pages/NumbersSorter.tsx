@@ -164,7 +164,7 @@ export default function NumbersSorter() {
       setDeduplicated(unique);
 
       if (unique.length === 0) {
-        toast.info("All lines already exist in Queued List");
+        toast.info("All lines already exist in Queued List or History");
       } else {
         toast.success(`${unique.length} unique lines after deduplication`);
       }
