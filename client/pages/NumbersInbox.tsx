@@ -97,6 +97,13 @@ export default function NumbersInbox() {
     fetchData();
   }, [token]);
 
+  // Persist claimed lines to localStorage whenever they change
+  useEffect(() => {
+    if (claimedLines.length > 0) {
+      localStorage.setItem("claimedLines", JSON.stringify(claimedLines));
+    }
+  }, [claimedLines]);
+
   // Update remaining time countdown
   useEffect(() => {
     if (!cooldownUntil) {
