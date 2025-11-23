@@ -18,7 +18,6 @@ import {
   Check,
   User,
   Users,
-  Settings as SettingsIcon,
   Eye,
   EyeOff,
   Edit2,
