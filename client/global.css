@@ -1,0 +1,168 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 217.2 32.6% 17.5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 217.2 32.6% 17.5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 217.2 32.6% 17.5%;
+
+    --primary: 259 100% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217.2 16.3% 88%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 259 100% 51%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 16.3% 91%;
+    --input: 217.2 16.3% 93%;
+    --ring: 259 100% 51%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 217.2 32.6% 17.5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 259 100% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 259 100% 51%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217.2 32.6% 25%;
+    --sidebar-ring: 259 100% 51%;
+
+    --success: 132 54% 52%;
+    --warning: 38 92% 50%;
+    --info: 259 100% 51%;
+  }
+
+  .dark {
+    --background: 217.2 32.6% 11%;
+    --foreground: 0 0% 100%;
+
+    --card: 217.2 32.6% 15%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 217.2 32.6% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 259 100% 51%;
+    --primary-foreground: 217.2 32.6% 11%;
+
+    --secondary: 217.2 32.6% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217.2 32.6% 25%;
+    --muted-foreground: 217.2 16.3% 65%;
+
+    --accent: 259 100% 51%;
+    --accent-foreground: 217.2 32.6% 11%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 217.2 32.6% 11%;
+
+    --border: 217.2 32.6% 22%;
+    --input: 217.2 32.6% 20%;
+    --ring: 259 100% 51%;
+
+    --sidebar-background: 217.2 32.6% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 259 100% 51%;
+    --sidebar-primary-foreground: 217.2 32.6% 11%;
+    --sidebar-accent: 259 100% 51%;
+    --sidebar-accent-foreground: 217.2 32.6% 11%;
+    --sidebar-border: 217.2 32.6% 18%;
+    --sidebar-ring: 259 100% 51%;
+
+    --success: 132 54% 52%;
+    --warning: 38 92% 50%;
+    --info: 259 100% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  h1 {
+    @apply text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl font-bold;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg font-semibold;
+  }
+
+  a {
+    @apply text-primary hover:underline;
+  }
+}
+
+@layer components {
+  .status-dot {
+    @apply inline-flex h-3 w-3 rounded-full animate-pulse-dot;
+  }
+
+  .status-dot-green {
+    @apply bg-success;
+  }
+
+  .status-dot-red {
+    @apply bg-red-500;
+  }
+
+  .status-dot-grey {
+    @apply bg-muted;
+  }
+
+  .glass-card {
+    @apply rounded-lg border border-white/20 bg-white/10 backdrop-blur-md;
+  }
+
+  .glass-card-dark {
+    @apply rounded-lg border border-white/10 bg-black/20 backdrop-blur-md;
+  }
+}
