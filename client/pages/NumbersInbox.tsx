@@ -34,8 +34,9 @@ export default function NumbersInbox() {
   const [remainingTime, setRemainingTime] = useState<string>("");
   const [queuedLinesCount, setQueuedLinesCount] = useState(0);
 
-  // Restore cooldown from localStorage on mount
+  // Restore cooldown and claimed lines from localStorage on mount
   useEffect(() => {
+    // Restore cooldown
     const storedCooldownUntil = localStorage.getItem("cooldownUntil");
     if (storedCooldownUntil) {
       const cooldownTime = new Date(storedCooldownUntil);
@@ -46,6 +47,19 @@ export default function NumbersInbox() {
         localStorage.removeItem("cooldownUntil");
       }
     }
+
+    // Restore claimed lines
+    const storedClaimedLines = localStorage.getItem("claimedLines");
+    if (storedClaimedLines) {
+      try {
+        const parsedLines = JSON.parse(storedClaimedLines);
+        setClaimedLines(parsedLines);
+      } catch (error) {
+        console.error("Failed to parse claimed lines from localStorage:", error);
+        localStorage.removeItem("claimedLines");
+      }
+    }
+
     setLoading(false);
   }, []);
 
