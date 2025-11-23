@@ -47,7 +47,7 @@ export default function NumbersSorter() {
       if (!token) return;
 
       try {
-        const response = await fetch("/api/claim/settings", {
+        const response = await fetch("/api/sorter/settings", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -205,8 +205,8 @@ export default function NumbersSorter() {
 
     try {
       setSavingSettings(true);
-      const response = await fetch("/api/claim/settings", {
-        method: "PUT",
+      const response = await fetch("/api/sorter/settings", {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
