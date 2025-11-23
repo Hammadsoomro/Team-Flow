@@ -91,6 +91,8 @@ export default function NumbersInbox() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
