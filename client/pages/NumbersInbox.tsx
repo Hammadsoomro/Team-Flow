@@ -162,6 +162,9 @@ export default function NumbersInbox() {
 
       setClaimedLines(newClaimedLines);
 
+      // Update queued lines count
+      setQueuedLinesCount(Math.max(0, queuedLinesCount - data.claimedCount));
+
       // Set cooldown and persist to localStorage
       const cooldownEnd = new Date(
         new Date().getTime() + cooldownMinutes * 60000,
