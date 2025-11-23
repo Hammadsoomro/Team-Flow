@@ -60,7 +60,7 @@ export default function NumbersInbox() {
       }
     }
 
-    setLoading(false);
+    // Don't set loading to false here - let the fetch effect handle it
   }, []);
 
   // Fetch sorter settings and queued lines
