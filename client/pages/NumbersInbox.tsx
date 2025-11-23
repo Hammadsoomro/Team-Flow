@@ -281,11 +281,13 @@ export default function NumbersInbox() {
               >
                 {claiming
                   ? "Claiming..."
-                  : queuedLinesCount === 0
-                    ? "No Lines Available"
-                    : cooldownUntil && remainingTime
-                      ? `On Cooldown (${remainingTime})`
-                      : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
+                  : loading
+                    ? "Loading..."
+                    : queuedLinesCount === 0
+                      ? "No Lines Available"
+                      : cooldownUntil && remainingTime
+                        ? `On Cooldown (${remainingTime})`
+                        : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
