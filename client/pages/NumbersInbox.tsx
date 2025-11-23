@@ -32,6 +32,7 @@ export default function NumbersInbox() {
   const [linesClaim, setLinesClaim] = useState(5);
   const [cooldownUntil, setCooldownUntil] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState<string>("");
+  const [queuedLinesCount, setQueuedLinesCount] = useState(0);
 
   // Restore cooldown from localStorage on mount
   useEffect(() => {
