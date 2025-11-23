@@ -272,7 +272,15 @@ export default function NumbersInbox() {
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Card className="p-6">
+              <div className="text-sm text-muted-foreground mb-1">
+                Lines in Queue
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {queuedLinesCount}
+              </div>
+            </Card>
             <Card className="p-6">
               <div className="text-sm text-muted-foreground mb-1">
                 Total Claimed
