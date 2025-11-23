@@ -186,7 +186,7 @@ export default function NumbersInbox() {
         claimedByName: user.name,
       }));
 
-      setClaimedLines([...newClaimedLines, ...claimedLines]);
+      setClaimedLines(newClaimedLines);
 
       // Update queued lines count
       setQueuedLinesCount(Math.max(0, queuedLinesCount - data.claimedCount));
