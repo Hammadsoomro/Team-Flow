@@ -21,7 +21,7 @@ export default function NumbersSorter() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeduplicating, setIsDeduplicating] = useState(false);
   const [settings, setSettings] = useState({
-    lineCount: 5,
+    linesClaim: 5,
     cooldownMinutes: 30,
   });
   const [savingSettings, setSavingSettings] = useState(false);
@@ -54,7 +54,7 @@ export default function NumbersSorter() {
         if (response.ok) {
           const data = await response.json();
           setSettings({
-            lineCount: data.lineCount || 5,
+            linesClaim: data.linesClaim || 5,
             cooldownMinutes: data.cooldownMinutes || 30,
           });
         }
@@ -232,7 +232,7 @@ export default function NumbersSorter() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lineCount: Math.max(1, Math.min(100, settings.lineCount)),
+          linesClaim: Math.max(1, Math.min(15, settings.linesClaim)),
           cooldownMinutes: Math.max(
             1,
             Math.min(1440, settings.cooldownMinutes),
@@ -458,19 +458,19 @@ export default function NumbersSorter() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-base font-medium text-foreground">
-                        Lines Per Claim: {settings.lineCount} line
-                        {settings.lineCount !== 1 ? "s" : ""}
+                        Lines Per Claim: {settings.linesClaim} line
+                        {settings.linesClaim !== 1 ? "s" : ""}
                       </label>
                     </div>
                     <input
                       type="range"
                       min="1"
                       max="15"
-                      value={settings.lineCount}
+                      value={settings.linesClaim}
                       onChange={(e) =>
                         setSettings({
                           ...settings,
-                          lineCount: parseInt(e.target.value) || 1,
+                          linesClaim: parseInt(e.target.value) || 1,
                         })
                       }
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
@@ -509,7 +509,7 @@ export default function NumbersSorter() {
                           </li>
                           <li>
                             • Lines per claim:{" "}
-                            <strong>{settings.lineCount} line(s)</strong>
+                            <strong>{settings.linesClaim} line(s)</strong>
                           </li>
                           <li>
                             • Claimed lines will move to History immediately
