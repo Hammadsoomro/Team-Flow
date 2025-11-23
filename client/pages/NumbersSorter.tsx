@@ -76,6 +76,24 @@ export default function NumbersSorter() {
     localStorage.setItem("sorterDeduplicated", JSON.stringify(deduplicated));
   }, [deduplicated]);
 
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("sorterSettings", JSON.stringify(settings));
+  }, [settings]);
+
+  // Load settings from localStorage on mount (before server fetch)
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("sorterSettings");
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+      } catch (error) {
+        console.error("Error loading saved settings:", error);
+      }
+    }
+  }, []);
+
   const deduplicateLines = async () => {
     if (!token) {
       toast.error("Authentication required");
