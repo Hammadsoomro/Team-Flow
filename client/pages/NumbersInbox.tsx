@@ -32,9 +32,11 @@ export default function NumbersInbox() {
   const [linesClaim, setLinesClaim] = useState(5);
   const [cooldownUntil, setCooldownUntil] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState<string>("");
+  const [queuedLinesCount, setQueuedLinesCount] = useState(0);
 
-  // Restore cooldown from localStorage on mount
+  // Restore cooldown and claimed lines from localStorage on mount
   useEffect(() => {
+    // Restore cooldown
     const storedCooldownUntil = localStorage.getItem("cooldownUntil");
     if (storedCooldownUntil) {
       const cooldownTime = new Date(storedCooldownUntil);
@@ -45,36 +47,67 @@ export default function NumbersInbox() {
         localStorage.removeItem("cooldownUntil");
       }
     }
-    setLoading(false);
+
+    // Restore claimed lines
+    const storedClaimedLines = localStorage.getItem("claimedLines");
+    if (storedClaimedLines) {
+      try {
+        const parsedLines = JSON.parse(storedClaimedLines);
+        setClaimedLines(parsedLines);
+      } catch (error) {
+        console.error(
+          "Failed to parse claimed lines from localStorage:",
+          error,
+        );
+        localStorage.removeItem("claimedLines");
+      }
+    }
+
+    // Don't set loading to false here - let the fetch effect handle it
   }, []);
 
-  // Fetch sorter settings
+  // Fetch sorter settings and queued lines
   useEffect(() => {
     if (!token) return;
 
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/sorter/settings", {
+        // Fetch settings
+        const settingsResponse = await fetch("/api/sorter/settings", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          console.error(
-            `Sorter settings API error: ${response.status} ${response.statusText}`,
-          );
-          return;
+        if (settingsResponse.ok) {
+          const data = await settingsResponse.json();
+          setCooldownMinutes(data.cooldownMinutes || 5);
+          setLinesClaim(data.linesClaim || 5);
         }
 
-        const data = await response.json();
-        setCooldownMinutes(data.cooldownMinutes || 5);
-        setLinesClaim(data.linesClaim || 5);
+        // Fetch queued lines count
+        const queuedResponse = await fetch("/api/queued", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (queuedResponse.ok) {
+          const queuedData = await queuedResponse.json();
+          setQueuedLinesCount((queuedData.lines || []).length);
+        }
       } catch (error) {
-        console.error("Error fetching sorter settings:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchSettings();
+    fetchData();
   }, [token]);
+
+  // Persist claimed lines to localStorage whenever they change
+  useEffect(() => {
+    if (claimedLines.length > 0) {
+      localStorage.setItem("claimedLines", JSON.stringify(claimedLines));
+    }
+  }, [claimedLines]);
 
   // Update remaining time countdown
   useEffect(() => {
@@ -145,7 +178,7 @@ export default function NumbersInbox() {
 
       const data = await response.json();
 
-      // Add claimed lines to display
+      // Add claimed lines to display (append to existing claimed lines)
       const newClaimedLines: ClaimedLine[] = data.lines.map((line: any) => ({
         _id: line._id || Math.random().toString(),
         content: line.content,
@@ -153,7 +186,10 @@ export default function NumbersInbox() {
         claimedByName: user.name,
       }));
 
-      setClaimedLines(newClaimedLines);
+      setClaimedLines([...newClaimedLines, ...claimedLines]);
+
+      // Update queued lines count
+      setQueuedLinesCount(Math.max(0, queuedLinesCount - data.claimedCount));
 
       // Set cooldown and persist to localStorage
       const cooldownEnd = new Date(
@@ -208,15 +244,16 @@ export default function NumbersInbox() {
                     Claim Lines
                   </h2>
                   <p className="text-muted-foreground">
-                    Claim {linesClaim} line{linesClaim !== 1 ? "s" : ""} from
-                    the queue
+                    {queuedLinesCount === 0
+                      ? "No lines available in the queue"
+                      : `${queuedLinesCount} line${queuedLinesCount !== 1 ? "s" : ""} available - Claim ${linesClaim} line${linesClaim !== 1 ? "s" : ""} from the queue`}
                   </p>
                 </div>
               </div>
 
               {cooldownUntil && remainingTime && (
-                <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <div className="flex items-center gap-2 text-yellow-900 dark:text-yellow-100">
+                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-900 dark:text-red-100">
                     <Clock className="h-5 w-5" />
                     <div>
                       <p className="font-semibold">Cooldown Active</p>
@@ -231,16 +268,29 @@ export default function NumbersInbox() {
               <Button
                 onClick={handleClaimLines}
                 disabled={
-                  claiming || (cooldownUntil && remainingTime !== "") || loading
+                  claiming ||
+                  loading ||
+                  (cooldownUntil && remainingTime !== "") ||
+                  queuedLinesCount === 0
                 }
                 size="lg"
-                className="w-full bg-primary hover:bg-primary/90"
+                className={`w-full font-semibold text-base transition-all ${
+                  queuedLinesCount === 0
+                    ? "bg-gray-500 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-600 text-white"
+                    : cooldownUntil && remainingTime !== ""
+                      ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white"
+                      : "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                }`}
               >
                 {claiming
                   ? "Claiming..."
-                  : cooldownUntil && remainingTime
-                    ? `On Cooldown (${remainingTime})`
-                    : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
+                  : loading
+                    ? "Loading..."
+                    : queuedLinesCount === 0
+                      ? "No Lines Available"
+                      : cooldownUntil && remainingTime
+                        ? `On Cooldown (${remainingTime})`
+                        : `Claim ${linesClaim} Line${linesClaim !== 1 ? "s" : ""}`}
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
@@ -250,7 +300,15 @@ export default function NumbersInbox() {
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Card className="p-6">
+              <div className="text-sm text-muted-foreground mb-1">
+                Lines in Queue
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {queuedLinesCount}
+              </div>
+            </Card>
             <Card className="p-6">
               <div className="text-sm text-muted-foreground mb-1">
                 Total Claimed
@@ -271,9 +329,24 @@ export default function NumbersInbox() {
 
           {/* Claimed Lines Section */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-foreground">
-              Your Claimed Lines
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">
+                Your Claimed Lines
+              </h2>
+              {claimedLines.length > 0 && (
+                <Button
+                  onClick={() => {
+                    setClaimedLines([]);
+                    localStorage.removeItem("claimedLines");
+                    toast.success("Claimed lines cleared");
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear History
+                </Button>
+              )}
+            </div>
 
             {loading ? (
               <Card className="p-8">

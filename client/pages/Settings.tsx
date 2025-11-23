@@ -18,7 +18,6 @@ import {
   Check,
   User,
   Users,
-  Settings as SettingsIcon,
   Eye,
   EyeOff,
   Edit2,
@@ -27,7 +26,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TeamManagement } from "@/components/TeamManagement";
-import { SorterSettings } from "@/components/SorterSettings";
 
 export default function SettingsPage() {
   const { user, token, isAdmin } = useAuth();
@@ -242,7 +240,7 @@ export default function SettingsPage() {
 
           {/* Tabs */}
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
@@ -252,13 +250,6 @@ export default function SettingsPage() {
                 <TabsTrigger value="team" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Team</span>
-                </TabsTrigger>
-              )}
-
-              {isAdmin && (
-                <TabsTrigger value="sorter" className="flex items-center gap-2">
-                  <SettingsIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sorter</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -555,13 +546,6 @@ export default function SettingsPage() {
             {isAdmin && (
               <TabsContent value="team" className="space-y-6">
                 <TeamManagement token={token} />
-              </TabsContent>
-            )}
-
-            {/* Sorter Settings Tab (Admin Only) */}
-            {isAdmin && (
-              <TabsContent value="sorter" className="space-y-6">
-                <SorterSettings token={token} />
               </TabsContent>
             )}
           </Tabs>

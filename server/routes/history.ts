@@ -42,14 +42,14 @@ export const getHistory: RequestHandler = async (req, res) => {
     const teamId = (req as any).teamId || "default-team";
     const userId = (req as any).userId || "";
     const isAdmin = (req as any).role === "admin";
-    const { search, date } = req.query;
+    const { search, date, allForDedup } = req.query;
 
     const collections = getCollections();
 
     const filter: any = { teamId };
 
-    // Filter by user if not admin
-    if (!isAdmin) {
+    // Filter by user if not admin, unless fetching all for deduplication
+    if (!isAdmin && !allForDedup) {
       filter.claimedBy = userId;
     }
 
