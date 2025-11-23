@@ -102,8 +102,8 @@ export default function NumbersSorter() {
         (queuedData.lines || []).map((line: any) => line.content.trim().toLowerCase())
       );
 
-      // Fetch history entries
-      const historyResponse = await fetch("/api/history", {
+      // Fetch all history entries (including team members' for deduplication)
+      const historyResponse = await fetch("/api/history?allForDedup=true", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
