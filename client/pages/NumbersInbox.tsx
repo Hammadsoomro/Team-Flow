@@ -218,8 +218,9 @@ export default function NumbersInbox() {
                     Claim Lines
                   </h2>
                   <p className="text-muted-foreground">
-                    Claim {linesClaim} line{linesClaim !== 1 ? "s" : ""} from
-                    the queue
+                    {queuedLinesCount === 0
+                      ? "No lines available in the queue"
+                      : `${queuedLinesCount} line${queuedLinesCount !== 1 ? "s" : ""} available - Claim ${linesClaim} line${linesClaim !== 1 ? "s" : ""} from the queue`}
                   </p>
                 </div>
               </div>
