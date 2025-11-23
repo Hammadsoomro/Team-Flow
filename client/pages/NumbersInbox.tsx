@@ -248,12 +248,12 @@ export default function NumbersInbox() {
                   queuedLinesCount === 0
                 }
                 size="lg"
-                className={`w-full font-semibold text-base ${
+                className={`w-full font-semibold text-base transition-all ${
                   queuedLinesCount === 0
-                    ? "bg-gray-400 hover:bg-gray-400 text-white cursor-not-allowed"
+                    ? "bg-gray-500 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-600 text-white"
                     : cooldownUntil && remainingTime !== ""
-                      ? "bg-red-500 hover:bg-red-600 text-white"
-                      : "bg-green-500 hover:bg-green-600 text-white"
+                      ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white"
+                      : "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
                 }`}
               >
                 {claiming
