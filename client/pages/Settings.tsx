@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TeamManagement } from "@/components/TeamManagement";
-import { SorterSettings } from "@/components/SorterSettings";
 
 export default function SettingsPage() {
   const { user, token, isAdmin } = useAuth();
@@ -255,12 +254,6 @@ export default function SettingsPage() {
                 </TabsTrigger>
               )}
 
-              {isAdmin && (
-                <TabsTrigger value="sorter" className="flex items-center gap-2">
-                  <SettingsIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sorter</span>
-                </TabsTrigger>
-              )}
             </TabsList>
 
             {/* Profile Settings Tab */}
@@ -558,12 +551,6 @@ export default function SettingsPage() {
               </TabsContent>
             )}
 
-            {/* Sorter Settings Tab (Admin Only) */}
-            {isAdmin && (
-              <TabsContent value="sorter" className="space-y-6">
-                <SorterSettings token={token} />
-              </TabsContent>
-            )}
           </Tabs>
         </div>
       </div>
