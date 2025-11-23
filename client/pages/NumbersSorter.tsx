@@ -122,27 +122,13 @@ export default function NumbersSorter() {
         ),
       );
 
-      // Fetch all history entries (including team members' for deduplication)
-      const historyResponse = await fetch("/api/history?allForDedup=true", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const historyData = historyResponse.ok
-        ? await historyResponse.json()
-        : {};
-      const historyLines = new Set(
-        (historyData.entries || []).map((entry: any) =>
-          entry.content.trim().toLowerCase(),
-        ),
-      );
-
       // Get first 15 words of each line for comparison
       const getFirstWords = (text: string) => {
         return text.split(/\s+/).slice(0, 15).join(" ");
       };
 
       // Deduplicate: keep only first occurrence of each unique set of first 15 words
-      // AND exclude lines that are already in queued list or history
+      // AND exclude lines that are already in queued list
       const seen = new Set<string>();
       const unique: string[] = [];
 
@@ -150,12 +136,8 @@ export default function NumbersSorter() {
         const trimmedLine = line.trim().toLowerCase();
         const key = getFirstWords(trimmedLine);
 
-        // Check if not already seen, and not in queued list or history
-        if (
-          !seen.has(key) &&
-          !queuedLines.has(trimmedLine) &&
-          !historyLines.has(trimmedLine)
-        ) {
+        // Check if not already seen and not in queued list
+        if (!seen.has(key) && !queuedLines.has(trimmedLine)) {
           seen.add(key);
           unique.push(line);
         }
