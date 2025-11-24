@@ -44,24 +44,6 @@ function expressPlugin(): Plugin {
           }
           next();
         });
-
-        // Handle WebSocket upgrades for Socket.IO
-        const onServerViteHttpServer = () => {
-          if (server.httpServer) {
-            server.httpServer.on("upgrade", (req, socket, head) => {
-              if (req.url.startsWith("/socket.io")) {
-                const { getHttpServer } = await import("./server");
-                const httpServer = getHttpServer();
-                if (httpServer) {
-                  httpServer.emit("upgrade", req, socket, head);
-                }
-              }
-            });
-          }
-        };
-
-        // Call after server is initialized
-        setTimeout(onServerViteHttpServer, 0);
       } catch (error) {
         console.error("[Vite] Failed to initialize Express server:", error);
         throw error;
