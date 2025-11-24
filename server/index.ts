@@ -167,9 +167,12 @@ export async function createServer() {
       );
 
       // User marks message as read
-      socket.on("message-read", (data: { messageId: string; userId: string }) => {
-        io.emit("message-read", data);
-      });
+      socket.on(
+        "message-read",
+        (data: { messageId: string; userId: string }) => {
+          io.emit("message-read", data);
+        },
+      );
 
       // User edits a message
       socket.on(
