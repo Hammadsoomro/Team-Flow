@@ -210,4 +210,47 @@
   .glass-card-dark {
     @apply rounded-lg border border-white/10 bg-black/20 backdrop-blur-md;
   }
+
+  /* AI Assistant Theme Components */
+  .ai-assistant-gradient-bg {
+    background: linear-gradient(
+      to right bottom,
+      oklch(0.379 0.146 265.522) 0%,
+      oklch(0.45 0.085 224.283) 50%,
+      oklch(0.424 0.199 265.638) 100%
+    );
+  }
+
+  .ai-assistant-glass {
+    @apply rounded-2xl border border-white/5 bg-white/5 backdrop-blur-2xl;
+  }
+
+  .ai-assistant-glass-input {
+    @apply rounded-full border border-white/10 bg-white/5 placeholder-white/40 text-white backdrop-blur-xl;
+  }
+
+  .ai-assistant-sidebar {
+    @apply bg-black/30 backdrop-blur-2xl border-r border-white/5;
+  }
+
+  .ai-assistant-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-assistant-glow::before {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(24px);
+    opacity: 0.1;
+  }
+
+  .ai-assistant-button {
+    @apply rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all duration-200;
+  }
+
+  .ai-assistant-button-primary {
+    @apply rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200;
+  }
 }
