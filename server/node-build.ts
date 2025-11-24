@@ -16,21 +16,27 @@ async function startServer() {
     // Serve static files
     app.use(express.static(distPath));
 
+    // Health check endpoint
+    app.get("/health", (req, res) => {
+      res.json({ status: "ok" });
+    });
+
     // Handle React Router - serve index.html for all non-API routes
     app.get("*", (req, res) => {
       // Don't serve index.html for API routes
-      if (req.path.startsWith("/api/") || req.path.startsWith("/health")) {
+      if (req.path.startsWith("/api/") || req.path.startsWith("/socket.io")) {
         return res.status(404).json({ error: "API endpoint not found" });
       }
 
       res.sendFile(path.join(distPath, "index.html"));
     });
 
-    httpServer.listen(port, () => {
+    // Listen on all network interfaces (0.0.0.0) for Fly.io compatibility
+    httpServer.listen(port, "0.0.0.0", () => {
       console.log(`🚀 Fusion Starter server running on port ${port}`);
-      console.log(`📱 Frontend: http://localhost:${port}`);
-      console.log(`🔧 API: http://localhost:${port}/api`);
-      console.log(`🔗 WebSocket: ws://localhost:${port}`);
+      console.log(`📱 Frontend: http://0.0.0.0:${port}`);
+      console.log(`🔧 API: http://0.0.0.0:${port}/api`);
+      console.log(`🔗 WebSocket: ws://0.0.0.0:${port}`);
     });
 
     // Graceful shutdown
