@@ -176,11 +176,8 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
     socket.on("new-message", (data: any) => {
       // Only add messages that belong to the current chat
-      const isForCurrentChat =
-        selectedChat.type === "group"
-          ? data.groupId === selectedChat.id
-          : (data.sender === selectedChat.id && data.recipient === user?._id) ||
-            (data.sender === user?._id && data.recipient === selectedChat.id);
+      const chatRoomId = getChatRoomId();
+      const isForCurrentChat = data.chatId === chatRoomId;
 
       if (!isForCurrentChat) {
         return;
