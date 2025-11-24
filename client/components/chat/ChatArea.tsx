@@ -91,6 +91,16 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Create canonical chat room ID (same for both direct chat participants)
+  const getChatRoomId = () => {
+    if (selectedChat.type === "group") {
+      return selectedChat.id;
+    }
+    // For direct messages, create a consistent room ID
+    const participants = [user?._id, selectedChat.id].sort();
+    return `direct_${participants.join("_")}`;
+  };
+
   // Initialize WebSocket connection
   useEffect(() => {
     if (!token || !user?._id) {
@@ -136,12 +146,14 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
     socketRef.current = socket;
 
+    const chatRoomId = getChatRoomId();
+
     // Socket event listeners
     socket.on("connect", () => {
       console.log("✅ Connected to WebSocket server successfully");
       // Join the chat room
       socket.emit("join-chat", {
-        chatId: selectedChat.id,
+        chatId: chatRoomId,
         userId: user._id,
       });
       // Fetch initial messages
