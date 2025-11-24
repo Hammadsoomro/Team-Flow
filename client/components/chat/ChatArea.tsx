@@ -113,9 +113,10 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
     // For better compatibility with some hosting providers, try polling first
     // if WebSocket fails
-    const transports = window.location.protocol === "https:"
-      ? ["websocket", "polling"]
-      : ["websocket", "polling"];
+    const transports =
+      window.location.protocol === "https:"
+        ? ["websocket", "polling"]
+        : ["websocket", "polling"];
 
     const socket = io(socketUrl, {
       auth: { token },
@@ -150,7 +151,9 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     // Fallback: if socket doesn't connect within 5 seconds, fetch messages via HTTP
     const connectTimeoutId = setTimeout(() => {
       if (!socket.connected) {
-        console.warn("Socket not connected after 5 seconds, fetching messages via HTTP...");
+        console.warn(
+          "Socket not connected after 5 seconds, fetching messages via HTTP...",
+        );
         fetchInitialMessages();
       }
     }, 5000);
@@ -289,9 +292,12 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
     socket.on("reconnect_failed", () => {
       console.error("Failed to reconnect to Socket.IO server");
-      toast.error("Unable to establish real-time connection. Using fallback mode.", {
-        description: "Some features may not work in real-time",
-      });
+      toast.error(
+        "Unable to establish real-time connection. Using fallback mode.",
+        {
+          description: "Some features may not work in real-time",
+        },
+      );
     });
 
     return () => {
@@ -321,7 +327,10 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         params.append("recipient", selectedChat.id);
       }
 
-      console.log(`Fetching messages for ${selectedChat.type}:`, selectedChat.id);
+      console.log(
+        `Fetching messages for ${selectedChat.type}:`,
+        selectedChat.id,
+      );
 
       const response = await fetch(`/api/chat/messages?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -332,10 +341,17 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       if (response.ok) {
         const data = await response.json();
         console.log(`Fetched ${data.length} messages`);
-        setMessages(Array.isArray(data) ? data.filter((msg: ChatMessage) => !msg.deleted) : []);
+        setMessages(
+          Array.isArray(data)
+            ? data.filter((msg: ChatMessage) => !msg.deleted)
+            : [],
+        );
       } else {
         const errorText = await response.text();
-        console.error(`Failed to fetch messages: ${response.status}`, errorText);
+        console.error(
+          `Failed to fetch messages: ${response.status}`,
+          errorText,
+        );
         toast.error("Failed to load messages", {
           description: `Server responded with status ${response.status}`,
         });

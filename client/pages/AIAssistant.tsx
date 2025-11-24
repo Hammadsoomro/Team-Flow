@@ -106,8 +106,12 @@ export default function AIAssistant() {
           <div className="flex flex-col h-full p-6">
             {/* Header */}
             <div className="mb-8">
-              <h2 className="text-lg font-bold text-white mb-1">AI Assistant</h2>
-              <p className="text-sm text-blue-300/80">Your intelligent companion</p>
+              <h2 className="text-lg font-bold text-white mb-1">
+                AI Assistant
+              </h2>
+              <p className="text-sm text-blue-300/80">
+                Your intelligent companion
+              </p>
             </div>
 
             {/* Quick Actions Menu */}
