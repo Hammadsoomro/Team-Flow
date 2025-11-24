@@ -336,11 +336,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     return () => {
       clearTimeout(connectTimeoutId);
       if (socket) {
-        socket.emit("leave-chat", { chatId: selectedChat.id });
+        socket.emit("leave-chat", { chatId: chatRoomId });
         socket.disconnect();
       }
     };
-  }, [selectedChat.id, token, user?._id]);
+  }, [selectedChat.id, selectedChat.type, token, user?._id, getChatRoomId]);
 
   // Fetch initial messages
   const fetchInitialMessages = async () => {
