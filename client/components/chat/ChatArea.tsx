@@ -108,12 +108,30 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     // Create socket connection
-    const socket = io(window.location.origin, {
+    // Try WebSocket first, then fall back to polling
+    const socketUrl = window.location.origin;
+
+    // For better compatibility with some hosting providers, try polling first
+    // if WebSocket fails
+    const transports =
+      window.location.protocol === "https:"
+        ? ["websocket", "polling"]
+        : ["websocket", "polling"];
+
+    const socket = io(socketUrl, {
       auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 10,
+      transports: transports,
+      path: "/socket.io/",
+      forceNew: false,
+      multiplex: true,
+      autoConnect: true,
+      // Add explicit WebSocket settings
+      upgrade: true,
+      rememberUpgrade: false,
     });
 
     socketRef.current = socket;
@@ -129,6 +147,16 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       // Fetch initial messages
       fetchInitialMessages();
     });
+
+    // Fallback: if socket doesn't connect within 5 seconds, fetch messages via HTTP
+    const connectTimeoutId = setTimeout(() => {
+      if (!socket.connected) {
+        console.warn(
+          "Socket not connected after 5 seconds, fetching messages via HTTP...",
+        );
+        fetchInitialMessages();
+      }
+    }, 5000);
 
     socket.on("disconnect", (reason) => {
       console.log("❌ Disconnected from WebSocket:", reason);
@@ -245,6 +273,7 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         message: error?.message,
         code: error?.code,
         data: error?.data,
+        type: error?.type,
       });
 
       // Show user-friendly error message
@@ -254,10 +283,25 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("error", (error: any) => {
-      console.error("WebSocket error:", error);
+      console.error("Socket.IO error event:", error);
+    });
+
+    socket.on("reconnect_attempt", () => {
+      console.log("Attempting to reconnect to Socket.IO server...");
+    });
+
+    socket.on("reconnect_failed", () => {
+      console.error("Failed to reconnect to Socket.IO server");
+      toast.error(
+        "Unable to establish real-time connection. Using fallback mode.",
+        {
+          description: "Some features may not work in real-time",
+        },
+      );
     });
 
     return () => {
+      clearTimeout(connectTimeoutId);
       if (socket) {
         socket.emit("leave-chat", { chatId: selectedChat.id });
         socket.disconnect();
@@ -267,7 +311,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
   // Fetch initial messages
   const fetchInitialMessages = async () => {
-    if (!token) return;
+    if (!token) {
+      console.warn("No token available, skipping message fetch");
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -279,16 +327,42 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         params.append("recipient", selectedChat.id);
       }
 
+      console.log(
+        `Fetching messages for ${selectedChat.type}:`,
+        selectedChat.id,
+      );
+
       const response = await fetch(`/api/chat/messages?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("Messages fetch response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setMessages(data.filter((msg: ChatMessage) => !msg.deleted));
+        console.log(`Fetched ${data.length} messages`);
+        setMessages(
+          Array.isArray(data)
+            ? data.filter((msg: ChatMessage) => !msg.deleted)
+            : [],
+        );
+      } else {
+        const errorText = await response.text();
+        console.error(
+          `Failed to fetch messages: ${response.status}`,
+          errorText,
+        );
+        toast.error("Failed to load messages", {
+          description: `Server responded with status ${response.status}`,
+        });
+        setMessages([]);
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
+      toast.error("Connection error", {
+        description: "Failed to fetch messages. Check your connection.",
+      });
+      setMessages([]);
     } finally {
       setLoading(false);
     }

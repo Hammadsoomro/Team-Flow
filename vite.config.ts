@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
       allow: [".env", ".env.*", ".", "./client", "./shared"],
       deny: ["*.{crt,pem}", "**/.git/**", "server/**"],
     },
+    middlewareMode: false,
   },
   build: {
     outDir: "dist/spa",
@@ -35,9 +36,9 @@ function expressPlugin(): Plugin {
         const app = await createServer();
         console.log("[Vite] Express API server initialized");
 
-        // Use a pre middleware to handle API requests
+        // Use a pre middleware to handle API requests and Socket.IO
         server.middlewares.use((req, res, next) => {
-          // Only route API requests through Express
+          // Route API and socket.io requests through Express
           if (req.url.startsWith("/api") || req.url.startsWith("/socket.io")) {
             return app(req, res);
           }

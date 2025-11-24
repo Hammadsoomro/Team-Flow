@@ -98,6 +98,51 @@
     --warning: 38 92% 50%;
     --info: 259 100% 51%;
   }
+
+  .ai-assistant {
+    --background: 220 10% 8%;
+    --foreground: 0 0% 100%;
+
+    --card: 220 8% 12%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 220 8% 12%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 210 100% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 10% 25%;
+    --muted-foreground: 210 50% 65%;
+
+    --accent: 210 100% 51%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 220 10% 8%;
+
+    --border: 220 8% 20%;
+    --input: 220 8% 18%;
+    --ring: 210 100% 51%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 8% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 210 100% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 100% 51%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 8% 15%;
+    --sidebar-ring: 210 100% 51%;
+
+    --success: 132 54% 52%;
+    --warning: 38 92% 50%;
+    --info: 210 100% 51%;
+  }
 }
 
 @layer base {
@@ -164,5 +209,48 @@
 
   .glass-card-dark {
     @apply rounded-lg border border-white/10 bg-black/20 backdrop-blur-md;
+  }
+
+  /* AI Assistant Theme Components */
+  .ai-assistant-gradient-bg {
+    background: linear-gradient(
+      to right bottom,
+      oklch(0.379 0.146 265.522) 0%,
+      oklch(0.45 0.085 224.283) 50%,
+      oklch(0.424 0.199 265.638) 100%
+    );
+  }
+
+  .ai-assistant-glass {
+    @apply rounded-2xl border border-white/5 bg-white/5 backdrop-blur-2xl;
+  }
+
+  .ai-assistant-glass-input {
+    @apply rounded-full border border-white/10 bg-white/5 placeholder-white/40 text-white backdrop-blur-xl;
+  }
+
+  .ai-assistant-sidebar {
+    @apply bg-black/30 backdrop-blur-2xl border-r border-white/5;
+  }
+
+  .ai-assistant-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-assistant-glow::before {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(24px);
+    opacity: 0.1;
+  }
+
+  .ai-assistant-button {
+    @apply rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all duration-200;
+  }
+
+  .ai-assistant-button-primary {
+    @apply rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200;
   }
 }

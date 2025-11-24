@@ -103,6 +103,12 @@ export default {
         "slide-in": "slide-in 0.3s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
       },
+      transitionDelay: {
+        "0": "0ms",
+        "100": "100ms",
+        "200": "200ms",
+        "300": "300ms",
+      },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },

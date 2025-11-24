@@ -7,10 +7,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import AIAssistant from "./pages/AIAssistant";
 import NumbersSorter from "./pages/NumbersSorter";
 import NumbersInbox from "./pages/NumbersInbox";
 import QueuedList from "./pages/QueuedList";
@@ -26,85 +28,95 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Protected Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ai-assistant"
+                element={
+                  <ProtectedRoute>
+                    <AIAssistant />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Admin Only Routes */}
-            <Route
-              path="/sorter"
-              element={
-                <ProtectedRoute adminOnly>
-                  <NumbersSorter />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/queued"
-              element={
-                <ProtectedRoute adminOnly>
-                  <QueuedList />
-                </ProtectedRoute>
-              }
-            />
+              {/* Admin Only Routes */}
+              <Route
+                path="/sorter"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <NumbersSorter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/queued"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <QueuedList />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Member Routes */}
-            <Route
-              path="/inbox"
-              element={
-                <ProtectedRoute>
-                  <NumbersInbox />
-                </ProtectedRoute>
-              }
-            />
+              {/* Member Routes */}
+              <Route
+                path="/inbox"
+                element={
+                  <ProtectedRoute>
+                    <NumbersInbox />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Team Routes */}
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <TeamChat />
-                </ProtectedRoute>
-              }
-            />
+              {/* Team Routes */}
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <TeamChat />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/history"
-              element={
-                <ProtectedRoute>
-                  <History />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <History />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch All */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+              {/* Catch All */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

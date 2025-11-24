@@ -14,6 +14,7 @@ import {
   List,
   TrendingUp,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -137,6 +138,35 @@ export default function Dashboard() {
                 </Card>
               );
             })}
+          </div>
+
+          {/* AI Assistant Feature */}
+          <div className="relative">
+            <Link to="/ai-assistant">
+              <Card className="border-border/50 bg-gradient-to-br from-blue-500/10 to-purple-500/10 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer group border-primary/30">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                            AI Assistant
+                          </h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Chat with your intelligent AI companion
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      Launch AI Assistant
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           {/* Quick Links */}
