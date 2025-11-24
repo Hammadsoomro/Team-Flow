@@ -7,6 +7,7 @@ import {
   addToQueue,
   getQueuedLines,
   clearQueuedLine,
+  clearAllQueuedLines,
   claimLines,
 } from "./routes/queued";
 import { addToHistory, getHistory, searchHistory } from "./routes/history";
