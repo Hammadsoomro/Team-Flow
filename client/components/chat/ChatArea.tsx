@@ -525,10 +525,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         );
 
         // Emit edit through WebSocket
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("edit-message", {
           messageId,
           content: editContent,
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
         });
 
         setEditingId(null);
@@ -556,9 +557,10 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         setMessages(messages.filter((msg) => msg._id !== messageId));
 
         // Emit delete through WebSocket
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("delete-message", {
           messageId,
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
         });
       }
     } catch (error) {
