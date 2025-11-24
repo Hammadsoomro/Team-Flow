@@ -296,7 +296,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
   // Fetch initial messages
   const fetchInitialMessages = async () => {
-    if (!token) return;
+    if (!token) {
+      console.warn("No token available, skipping message fetch");
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -308,16 +312,32 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         params.append("recipient", selectedChat.id);
       }
 
+      console.log(`Fetching messages for ${selectedChat.type}:`, selectedChat.id);
+
       const response = await fetch(`/api/chat/messages?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("Messages fetch response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setMessages(data.filter((msg: ChatMessage) => !msg.deleted));
+        console.log(`Fetched ${data.length} messages`);
+        setMessages(Array.isArray(data) ? data.filter((msg: ChatMessage) => !msg.deleted) : []);
+      } else {
+        const errorText = await response.text();
+        console.error(`Failed to fetch messages: ${response.status}`, errorText);
+        toast.error("Failed to load messages", {
+          description: `Server responded with status ${response.status}`,
+        });
+        setMessages([]);
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
+      toast.error("Connection error", {
+        description: "Failed to fetch messages. Check your connection.",
+      });
+      setMessages([]);
     } finally {
       setLoading(false);
     }
