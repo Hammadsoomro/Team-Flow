@@ -469,20 +469,23 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         const messageId = sentMessage._id || sentMessage.insertedId;
 
         // Emit the message through WebSocket so all users see it in real-time
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("send-message", {
           messageId,
           sender: user?._id,
           senderName: user?.name || "Unknown",
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           content: newMessage,
           timestamp: new Date().toISOString(),
+          groupId: selectedChat.type === "group" ? selectedChat.id : undefined,
+          recipient: selectedChat.type === "direct" ? selectedChat.id : undefined,
         });
 
         setNewMessage("");
 
         // Clear typing indicator
         socketRef.current.emit("typing", {
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           userId: user?._id,
           senderName: user?.name || "Unknown",
           isTyping: false,
