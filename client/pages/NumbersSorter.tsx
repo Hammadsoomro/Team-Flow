@@ -21,8 +21,8 @@ export default function NumbersSorter() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeduplicating, setIsDeduplicating] = useState(false);
   const [settings, setSettings] = useState({
-    lineCount: 5,
-    cooldownMinutes: 30,
+    linesClaim: 5,
+    cooldownMinutes: 5,
   });
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -54,8 +54,8 @@ export default function NumbersSorter() {
         if (response.ok) {
           const data = await response.json();
           setSettings({
-            lineCount: data.lineCount || 5,
-            cooldownMinutes: data.cooldownMinutes || 30,
+            linesClaim: data.linesClaim || 5,
+            cooldownMinutes: data.cooldownMinutes || 5,
           });
         }
       } catch (error) {
@@ -220,7 +220,7 @@ export default function NumbersSorter() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lineCount: Math.max(1, Math.min(100, settings.lineCount)),
+          linesClaim: Math.max(1, Math.min(15, settings.linesClaim)),
           cooldownMinutes: Math.max(
             1,
             Math.min(1440, settings.cooldownMinutes),
