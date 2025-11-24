@@ -200,18 +200,8 @@ export const Layout = ({ children }: LayoutProps) => {
 
             {/* Right */}
             <div className="flex items-center gap-3">
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                aria-label="Toggle theme"
-              >
-                {isDark ? (
-                  <Sun className="h-5 w-5 text-yellow-500" />
-                ) : (
-                  <Moon className="h-5 w-5 text-slate-400" />
-                )}
-              </button>
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
 
               {/* Profile Dropdown */}
               <DropdownMenu>
