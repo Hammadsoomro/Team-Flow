@@ -140,6 +140,7 @@ export async function createServer() {
   app.post("/api/queued/add", addToQueue);
   app.get("/api/queued", getQueuedLines);
   app.delete("/api/queued/:lineId", clearQueuedLine);
+  app.delete("/api/queued", clearAllQueuedLines);
   app.post("/api/queued/claim", claimLines);
 
   // History routes
