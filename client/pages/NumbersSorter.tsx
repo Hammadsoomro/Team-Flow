@@ -76,6 +76,11 @@ export default function NumbersSorter() {
     localStorage.setItem("sorterDeduplicated", JSON.stringify(deduplicated));
   }, [deduplicated]);
 
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("sorterSettings", JSON.stringify(settings));
+  }, [settings]);
+
   const deduplicateLines = async () => {
     if (!token) {
       toast.error("Authentication required");
@@ -249,7 +254,7 @@ export default function NumbersSorter() {
           {/* Header */}
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-              Numbers Sorter 🔢
+              Numbers Sorter ��
             </h1>
             <p className="text-muted-foreground">
               Input numbers, deduplicate them, and add to queue
