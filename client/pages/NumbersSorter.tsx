@@ -21,7 +21,7 @@ export default function NumbersSorter() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeduplicating, setIsDeduplicating] = useState(false);
   const [settings, setSettings] = useState({
-    linesClaim: 5,
+    lineCount: 5,
     cooldownMinutes: 30,
   });
   const [savingSettings, setSavingSettings] = useState(false);
@@ -47,14 +47,14 @@ export default function NumbersSorter() {
       if (!token) return;
 
       try {
-        const response = await fetch("/api/sorter/settings", {
+        const response = await fetch("/api/claim/settings", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
           const data = await response.json();
           setSettings({
-            linesClaim: data.linesClaim || 5,
+            lineCount: data.lineCount || 5,
             cooldownMinutes: data.cooldownMinutes || 30,
           });
         }
@@ -75,24 +75,6 @@ export default function NumbersSorter() {
   useEffect(() => {
     localStorage.setItem("sorterDeduplicated", JSON.stringify(deduplicated));
   }, [deduplicated]);
-
-  // Save settings to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem("sorterSettings", JSON.stringify(settings));
-  }, [settings]);
-
-  // Load settings from localStorage on mount (before server fetch)
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("sorterSettings");
-    if (savedSettings) {
-      try {
-        const parsedSettings = JSON.parse(savedSettings);
-        setSettings(parsedSettings);
-      } catch (error) {
-        console.error("Error loading saved settings:", error);
-      }
-    }
-  }, []);
 
   const deduplicateLines = async () => {
     if (!token) {
@@ -117,12 +99,10 @@ export default function NumbersSorter() {
 
       const queuedData = queuedResponse.ok ? await queuedResponse.json() : {};
       const queuedLines = new Set(
-        (queuedData.lines || []).map((line: any) =>
-          line.content.trim().toLowerCase(),
-        ),
+        (queuedData.lines || []).map((line: any) => line.content.trim().toLowerCase())
       );
 
-      // Fetch history entries (only admin's own entries for deduplication)
+      // Fetch history entries
       const historyResponse = await fetch("/api/history", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -132,8 +112,8 @@ export default function NumbersSorter() {
         : {};
       const historyLines = new Set(
         (historyData.entries || []).map((entry: any) =>
-          entry.content.trim().toLowerCase(),
-        ),
+          entry.content.trim().toLowerCase()
+        )
       );
 
       // Get first 15 words of each line for comparison
@@ -225,14 +205,14 @@ export default function NumbersSorter() {
 
     try {
       setSavingSettings(true);
-      const response = await fetch("/api/sorter/settings", {
-        method: "POST",
+      const response = await fetch("/api/claim/settings", {
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          linesClaim: Math.max(1, Math.min(15, settings.linesClaim)),
+          lineCount: Math.max(1, Math.min(100, settings.lineCount)),
           cooldownMinutes: Math.max(
             1,
             Math.min(1440, settings.cooldownMinutes),
@@ -394,141 +374,88 @@ export default function NumbersSorter() {
             </Card>
           </div>
 
-          {/* Admin Sorter Settings Section */}
+          {/* Admin Settings Section */}
           {isAdmin && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Sorter Configuration
-                </h2>
-                <p className="text-muted-foreground">
-                  Configure team settings for the numbers sorter
-                </p>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cooldown Timer</CardTitle>
-                  <CardDescription>
-                    Set the global cooldown time for team members after claiming
-                    lines
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <Card className="border-primary/50 bg-primary/5">
+              <CardHeader>
+                <CardTitle>Claim Settings</CardTitle>
+                <CardDescription>
+                  Configure how many numbers users can claim at once and the
+                  cooldown time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Line Count Setting */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-base font-medium text-foreground">
-                        Cooldown Duration: {settings.cooldownMinutes} minute
-                        {settings.cooldownMinutes !== 1 ? "s" : ""}
-                      </label>
+                    <label className="block text-sm font-medium text-foreground">
+                      Numbers per Claim
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={settings.lineCount}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            lineCount: parseInt(e.target.value) || 1,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        lines
+                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="60"
-                      value={settings.cooldownMinutes}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          cooldownMinutes: parseInt(e.target.value) || 1,
-                        })
-                      }
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>1 min</span>
-                      <span>60 min</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      After a team member claims lines, they must wait this
-                      duration before claiming again.
+                    <p className="text-xs text-muted-foreground">
+                      How many numbers each team member can claim at once
+                      (1-100)
                     </p>
                   </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lines Per Claim</CardTitle>
-                  <CardDescription>
-                    Set how many lines team members can claim in one action
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  {/* Cooldown Setting */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-base font-medium text-foreground">
-                        Lines Per Claim: {settings.linesClaim} line
-                        {settings.linesClaim !== 1 ? "s" : ""}
-                      </label>
+                    <label className="block text-sm font-medium text-foreground">
+                      Cooldown Time
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1440"
+                        value={settings.cooldownMinutes}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            cooldownMinutes: parseInt(e.target.value) || 1,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        minutes
+                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="15"
-                      value={settings.linesClaim}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          linesClaim: parseInt(e.target.value) || 1,
-                        })
-                      }
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>1 line</span>
-                      <span>15 lines</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      When a team member clicks the claim button, they will
-                      claim this many lines from the queue. Claimed lines move
-                      immediately from Queued List to History.
+                    <p className="text-xs text-muted-foreground">
+                      How long users must wait before claiming again (1-1440
+                      minutes)
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configuration Summary</CardTitle>
-                  <CardDescription>Current settings overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-                      <div className="text-sm text-blue-900 dark:text-blue-100">
-                        <p className="font-medium mb-2">
-                          Current Configuration
-                        </p>
-                        <ul className="space-y-1">
-                          <li>
-                            • Global cooldown:{" "}
-                            <strong>
-                              {settings.cooldownMinutes} minute(s)
-                            </strong>
-                          </li>
-                          <li>
-                            • Lines per claim:{" "}
-                            <strong>{settings.linesClaim} line(s)</strong>
-                          </li>
-                          <li>
-                            • Claimed lines will move to History immediately
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button
-                onClick={saveSettings}
-                disabled={savingSettings}
-                className="w-full bg-primary hover:bg-primary/90 h-10"
-              >
-                {savingSettings ? "Saving..." : "Save Settings"}
-              </Button>
-            </div>
+                <div className="pt-4 border-t border-border">
+                  <Button
+                    onClick={saveSettings}
+                    disabled={savingSettings}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {savingSettings ? "Saving..." : "Save Settings"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
