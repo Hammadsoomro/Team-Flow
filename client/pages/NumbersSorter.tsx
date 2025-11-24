@@ -39,6 +39,16 @@ export default function NumbersSorter() {
         console.error("Error loading deduplicated lines:", error);
       }
     }
+
+    const savedSettings = localStorage.getItem("sorterSettings");
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+      } catch (error) {
+        console.error("Error loading sorter settings:", error);
+      }
+    }
   }, []);
 
   // Load settings from server
