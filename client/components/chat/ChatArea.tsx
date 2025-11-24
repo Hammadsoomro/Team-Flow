@@ -91,6 +91,16 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Create canonical chat room ID (same for both direct chat participants)
+  const getChatRoomId = () => {
+    if (selectedChat.type === "group") {
+      return selectedChat.id;
+    }
+    // For direct messages, create a consistent room ID
+    const participants = [user?._id, selectedChat.id].sort();
+    return `direct_${participants.join("_")}`;
+  };
+
   // Initialize WebSocket connection
   useEffect(() => {
     if (!token || !user?._id) {
@@ -136,12 +146,14 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
 
     socketRef.current = socket;
 
+    const chatRoomId = getChatRoomId();
+
     // Socket event listeners
     socket.on("connect", () => {
       console.log("✅ Connected to WebSocket server successfully");
       // Join the chat room
       socket.emit("join-chat", {
-        chatId: selectedChat.id,
+        chatId: chatRoomId,
         userId: user._id,
       });
       // Fetch initial messages
@@ -163,6 +175,14 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("new-message", (data: any) => {
+      // Only add messages that belong to the current chat
+      const chatRoomId = getChatRoomId();
+      const isForCurrentChat = data.chatId === chatRoomId;
+
+      if (!isForCurrentChat) {
+        return;
+      }
+
       const newMsg: ChatMessage = {
         _id: data.messageId || data._id,
         sender: data.sender,
@@ -199,6 +219,12 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("message-edited", (data: any) => {
+      // Only update messages in the current chat
+      const chatRoomId = getChatRoomId();
+      const isForCurrentChat = data.chatId === chatRoomId;
+      if (!isForCurrentChat) {
+        return;
+      }
       setMessages((prev) =>
         prev.map((msg) =>
           msg._id === data.messageId
@@ -213,6 +239,12 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("message-deleted", (data: any) => {
+      // Only delete messages from the current chat
+      const chatRoomId = getChatRoomId();
+      const isForCurrentChat = data.chatId === chatRoomId;
+      if (!isForCurrentChat) {
+        return;
+      }
       setMessages((prev) => prev.filter((msg) => msg._id !== data.messageId));
     });
 
@@ -303,11 +335,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     return () => {
       clearTimeout(connectTimeoutId);
       if (socket) {
-        socket.emit("leave-chat", { chatId: selectedChat.id });
+        socket.emit("leave-chat", { chatId: chatRoomId });
         socket.disconnect();
       }
     };
-  }, [selectedChat.id, token, user?._id]);
+  }, [selectedChat.id, selectedChat.type, token, user?._id, getChatRoomId]);
 
   // Fetch initial messages
   const fetchInitialMessages = async () => {
@@ -376,9 +408,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
   const handleTyping = () => {
     if (!socketRef.current) return;
 
+    const chatRoomId = getChatRoomId();
+
     if (!isTyping) {
       socketRef.current.emit("typing", {
-        chatId: selectedChat.id,
+        chatId: chatRoomId,
         userId: user?._id,
         senderName: user?.name || "Unknown",
         isTyping: true,
@@ -395,7 +429,7 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     typingTimeoutRef.current = setTimeout(() => {
       if (socketRef.current) {
         socketRef.current.emit("typing", {
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           userId: user?._id,
           senderName: user?.name || "Unknown",
           isTyping: false,
@@ -436,20 +470,24 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         const messageId = sentMessage._id || sentMessage.insertedId;
 
         // Emit the message through WebSocket so all users see it in real-time
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("send-message", {
           messageId,
           sender: user?._id,
           senderName: user?.name || "Unknown",
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           content: newMessage,
           timestamp: new Date().toISOString(),
+          groupId: selectedChat.type === "group" ? selectedChat.id : undefined,
+          recipient:
+            selectedChat.type === "direct" ? selectedChat.id : undefined,
         });
 
         setNewMessage("");
 
         // Clear typing indicator
         socketRef.current.emit("typing", {
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           userId: user?._id,
           senderName: user?.name || "Unknown",
           isTyping: false,
@@ -487,10 +525,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         );
 
         // Emit edit through WebSocket
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("edit-message", {
           messageId,
           content: editContent,
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
         });
 
         setEditingId(null);
@@ -518,9 +557,10 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         setMessages(messages.filter((msg) => msg._id !== messageId));
 
         // Emit delete through WebSocket
+        const chatRoomId = getChatRoomId();
         socketRef.current.emit("delete-message", {
           messageId,
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
         });
       }
     } catch (error) {
@@ -542,9 +582,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       });
 
       // Emit read status through WebSocket
+      const chatRoomId = getChatRoomId();
       socketRef.current.emit("message-read", {
         messageId,
         userId: user?._id,
+        chatId: chatRoomId,
       });
     } catch (error) {
       console.error("Error marking message as read:", error);
@@ -566,7 +608,8 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         <h3 className="font-semibold text-lg">{selectedChat.name}</h3>
         {selectedChat.type === "group" && (
           <p className="text-xs text-muted-foreground">
-            Group Chat {socketRef.current?.connected ? "● Online" : "● Offline"}
+            Group Chat{" "}
+            {socketRef.current?.connected ? "�� Online" : "● Offline"}
           </p>
         )}
       </div>

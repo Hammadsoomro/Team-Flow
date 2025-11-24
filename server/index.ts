@@ -174,8 +174,8 @@ export async function createServer() {
       // User marks message as read
       socket.on(
         "message-read",
-        (data: { messageId: string; userId: string }) => {
-          io.emit("message-read", data);
+        (data: { messageId: string; userId: string; chatId: string }) => {
+          io.to(data.chatId).emit("message-read", data);
         },
       );
 
