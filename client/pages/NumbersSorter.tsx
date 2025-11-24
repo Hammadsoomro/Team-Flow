@@ -99,7 +99,9 @@ export default function NumbersSorter() {
 
       const queuedData = queuedResponse.ok ? await queuedResponse.json() : {};
       const queuedLines = new Set(
-        (queuedData.lines || []).map((line: any) => line.content.trim().toLowerCase())
+        (queuedData.lines || [])
+          .map((line: any) => line.content.trim().toLowerCase())
+          .filter((line: string) => line.length > 0)
       );
 
       // Fetch history entries
@@ -111,9 +113,9 @@ export default function NumbersSorter() {
         ? await historyResponse.json()
         : {};
       const historyLines = new Set(
-        (historyData.entries || []).map((entry: any) =>
-          entry.content.trim().toLowerCase()
-        )
+        (historyData.entries || [])
+          .map((entry: any) => entry.content.trim().toLowerCase())
+          .filter((line: string) => line.length > 0)
       );
 
       // Get first 15 words of each line for comparison
@@ -128,6 +130,12 @@ export default function NumbersSorter() {
 
       lines.forEach((line) => {
         const trimmedLine = line.trim().toLowerCase();
+
+        // Skip empty lines
+        if (trimmedLine.length === 0) {
+          return;
+        }
+
         const key = getFirstWords(trimmedLine);
 
         // Check if not already seen, and not in queued list or history
