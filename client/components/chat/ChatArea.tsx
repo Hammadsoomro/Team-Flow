@@ -479,7 +479,8 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
           content: newMessage,
           timestamp: new Date().toISOString(),
           groupId: selectedChat.type === "group" ? selectedChat.id : undefined,
-          recipient: selectedChat.type === "direct" ? selectedChat.id : undefined,
+          recipient:
+            selectedChat.type === "direct" ? selectedChat.id : undefined,
         });
 
         setNewMessage("");
@@ -607,7 +608,8 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         <h3 className="font-semibold text-lg">{selectedChat.name}</h3>
         {selectedChat.type === "group" && (
           <p className="text-xs text-muted-foreground">
-            Group Chat {socketRef.current?.connected ? "�� Online" : "● Offline"}
+            Group Chat{" "}
+            {socketRef.current?.connected ? "�� Online" : "● Offline"}
           </p>
         )}
       </div>
