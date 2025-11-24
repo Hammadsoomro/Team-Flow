@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
@@ -67,7 +66,7 @@ export async function createServer() {
 
   const app = express();
 
-  // Only create httpServer and io once (avoid recreating on HMR in dev mode)
+  // Only create httpServer once (avoid recreating on HMR in dev mode)
   if (!httpServer) {
     httpServer = http.createServer(app);
   } else {
@@ -85,36 +84,131 @@ export async function createServer() {
     });
   }
 
-  // Socket.IO authentication middleware
-  io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+  // Only set up Socket.IO listeners once to avoid duplicates
+  if (!socketIOInitialized) {
+    socketIOInitialized = true;
 
-    if (!token) {
-      console.error("Socket.IO: No token provided");
-      return next(new Error("Authentication token required"));
-    }
+    // Socket.IO authentication middleware
+    io.use((socket, next) => {
+      const token = socket.handshake.auth.token;
 
-    try {
-      const decoded = verifyToken(token);
-      if (!decoded) {
-        console.error(
-          "Socket.IO: Token verification failed - invalid or expired",
-        );
-        return next(new Error("Invalid or expired token"));
+      if (!token) {
+        console.error("Socket.IO: No token provided");
+        return next(new Error("Authentication token required"));
       }
 
-      // Attach user info to socket
-      (socket as any).userId = decoded.id;
-      (socket as any).email = decoded.email;
-      (socket as any).role = decoded.role;
+      try {
+        const decoded = verifyToken(token);
+        if (!decoded) {
+          console.error(
+            "Socket.IO: Token verification failed - invalid or expired",
+          );
+          return next(new Error("Invalid or expired token"));
+        }
 
-      console.log(`Socket.IO: User ${decoded.id} authenticated successfully`);
-      next();
-    } catch (error) {
-      console.error("Socket.IO auth error:", error);
-      return next(new Error("Authentication failed"));
-    }
-  });
+        // Attach user info to socket
+        (socket as any).userId = decoded.id;
+        (socket as any).email = decoded.email;
+        (socket as any).role = decoded.role;
+
+        console.log(`Socket.IO: User ${decoded.id} authenticated successfully`);
+        next();
+      } catch (error) {
+        console.error("Socket.IO auth error:", error);
+        return next(new Error("Authentication failed"));
+      }
+    });
+
+    // WebSocket setup for real-time chat
+    io.on("connection", (socket) => {
+      const userId = (socket as any).userId;
+      console.log(`User connected: ${socket.id} (User ID: ${userId})`);
+
+      // User joins a chat room
+      socket.on("join-chat", (data: { chatId: string; userId: string }) => {
+        socket.join(data.chatId);
+        console.log(`User ${data.userId} joined chat ${data.chatId}`);
+        socket.broadcast.to(data.chatId).emit("user-joined", {
+          userId: data.userId,
+          timestamp: new Date().toISOString(),
+        });
+      });
+
+      // User sends a message
+      socket.on(
+        "send-message",
+        (data: {
+          messageId: string;
+          sender: string;
+          senderName: string;
+          chatId: string;
+          content: string;
+          timestamp: string;
+        }) => {
+          io.to(data.chatId).emit("new-message", data);
+        },
+      );
+
+      // User is typing
+      socket.on(
+        "typing",
+        (data: {
+          chatId: string;
+          userId: string;
+          senderName: string;
+          isTyping: boolean;
+        }) => {
+          socket.broadcast.to(data.chatId).emit("user-typing", {
+            userId: data.userId,
+            senderName: data.senderName,
+            isTyping: data.isTyping,
+          });
+        },
+      );
+
+      // User marks message as read
+      socket.on("message-read", (data: { messageId: string; userId: string }) => {
+        io.emit("message-read", data);
+      });
+
+      // User edits a message
+      socket.on(
+        "edit-message",
+        (data: { messageId: string; content: string; chatId: string }) => {
+          io.to(data.chatId).emit("message-edited", data);
+        },
+      );
+
+      // User deletes a message
+      socket.on(
+        "delete-message",
+        (data: { messageId: string; chatId: string }) => {
+          io.to(data.chatId).emit("message-deleted", data);
+        },
+      );
+
+      // User leaves a chat
+      socket.on("leave-chat", (data: { chatId: string }) => {
+        socket.leave(data.chatId);
+        console.log(`User left chat ${data.chatId}`);
+      });
+
+      // Handle disconnect
+      socket.on("disconnect", () => {
+        console.log(`User disconnected: ${socket.id}`);
+      });
+
+      // Handle connection errors
+      socket.on("error", (error) => {
+        console.error(`Socket error for ${socket.id}:`, error);
+      });
+    });
+
+    // Handle Socket.IO connection errors
+    io.on("error", (error) => {
+      console.error("Socket.IO server error:", error);
+    });
+  }
 
   // Middleware
   app.use(cors());
@@ -190,96 +284,6 @@ export async function createServer() {
   // Sorter settings routes
   app.get("/api/sorter/settings", getSorterSettings);
   app.post("/api/sorter/settings", updateSorterSettings);
-
-  // WebSocket setup for real-time chat
-  io.on("connection", (socket) => {
-    const userId = (socket as any).userId;
-    console.log(`User connected: ${socket.id} (User ID: ${userId})`);
-
-    // User joins a chat room
-    socket.on("join-chat", (data: { chatId: string; userId: string }) => {
-      socket.join(data.chatId);
-      console.log(`User ${data.userId} joined chat ${data.chatId}`);
-      socket.broadcast.to(data.chatId).emit("user-joined", {
-        userId: data.userId,
-        timestamp: new Date().toISOString(),
-      });
-    });
-
-    // User sends a message
-    socket.on(
-      "send-message",
-      (data: {
-        messageId: string;
-        sender: string;
-        senderName: string;
-        chatId: string;
-        content: string;
-        timestamp: string;
-      }) => {
-        io.to(data.chatId).emit("new-message", data);
-      },
-    );
-
-    // User is typing
-    socket.on(
-      "typing",
-      (data: {
-        chatId: string;
-        userId: string;
-        senderName: string;
-        isTyping: boolean;
-      }) => {
-        socket.broadcast.to(data.chatId).emit("user-typing", {
-          userId: data.userId,
-          senderName: data.senderName,
-          isTyping: data.isTyping,
-        });
-      },
-    );
-
-    // User marks message as read
-    socket.on("message-read", (data: { messageId: string; userId: string }) => {
-      io.emit("message-read", data);
-    });
-
-    // User edits a message
-    socket.on(
-      "edit-message",
-      (data: { messageId: string; content: string; chatId: string }) => {
-        io.to(data.chatId).emit("message-edited", data);
-      },
-    );
-
-    // User deletes a message
-    socket.on(
-      "delete-message",
-      (data: { messageId: string; chatId: string }) => {
-        io.to(data.chatId).emit("message-deleted", data);
-      },
-    );
-
-    // User leaves a chat
-    socket.on("leave-chat", (data: { chatId: string }) => {
-      socket.leave(data.chatId);
-      console.log(`User left chat ${data.chatId}`);
-    });
-
-    // Handle disconnect
-    socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}`);
-    });
-
-    // Handle connection errors
-    socket.on("error", (error) => {
-      console.error(`Socket error for ${socket.id}:`, error);
-    });
-  });
-
-  // Handle Socket.IO connection errors
-  io.on("error", (error) => {
-    console.error("Socket.IO server error:", error);
-  });
 
   return app;
 }
