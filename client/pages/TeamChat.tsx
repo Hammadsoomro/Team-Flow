@@ -227,7 +227,6 @@ export default function TeamChat() {
               <ChatArea
                 selectedChat={selectedChat}
                 token={token}
-                socket={socketRef.current}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
