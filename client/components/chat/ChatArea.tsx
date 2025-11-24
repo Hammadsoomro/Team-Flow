@@ -295,6 +295,7 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     return () => {
+      clearTimeout(connectTimeoutId);
       if (socket) {
         socket.emit("leave-chat", { chatId: selectedChat.id });
         socket.disconnect();
