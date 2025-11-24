@@ -55,7 +55,7 @@ export function getHttpServer() {
 }
 
 export async function createServer() {
-  // Initialize MongoDB connection
+  // Initialize MongoDB connection (only once)
   try {
     await connectDB();
     console.log("Database initialized successfully");
@@ -65,13 +65,17 @@ export async function createServer() {
   }
 
   const app = express();
-  httpServer = http.createServer(app);
-  io = new Server(httpServer, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
-  });
+
+  // Only create httpServer and io if they don't exist yet (avoid multiple listeners in dev mode)
+  if (!httpServer) {
+    httpServer = http.createServer(app);
+    io = new Server(httpServer, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+      },
+    });
+  }
 
   // Socket.IO authentication middleware
   io.use((socket, next) => {
