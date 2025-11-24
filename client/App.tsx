@@ -43,6 +43,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/ai-assistant"
+              element={
+                <ProtectedRoute>
+                  <AIAssistant />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin Only Routes */}
             <Route
