@@ -147,6 +147,14 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       fetchInitialMessages();
     });
 
+    // Fallback: if socket doesn't connect within 5 seconds, fetch messages via HTTP
+    const connectTimeoutId = setTimeout(() => {
+      if (!socket.connected) {
+        console.warn("Socket not connected after 5 seconds, fetching messages via HTTP...");
+        fetchInitialMessages();
+      }
+    }, 5000);
+
     socket.on("disconnect", (reason) => {
       console.log("❌ Disconnected from WebSocket:", reason);
     });
