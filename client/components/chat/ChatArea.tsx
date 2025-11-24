@@ -581,9 +581,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       });
 
       // Emit read status through WebSocket
+      const chatRoomId = getChatRoomId();
       socketRef.current.emit("message-read", {
         messageId,
         userId: user?._id,
+        chatId: chatRoomId,
       });
     } catch (error) {
       console.error("Error marking message as read:", error);
@@ -605,7 +607,7 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         <h3 className="font-semibold text-lg">{selectedChat.name}</h3>
         {selectedChat.type === "group" && (
           <p className="text-xs text-muted-foreground">
-            Group Chat {socketRef.current?.connected ? "● Online" : "● Offline"}
+            Group Chat {socketRef.current?.connected ? "�� Online" : "● Offline"}
           </p>
         )}
       </div>
