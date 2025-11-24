@@ -78,6 +78,33 @@ export default function QueuedList() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (!token) return;
+
+    try {
+      setIsClearingAll(true);
+      const response = await fetch("/api/queued", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLines([]);
+        setShowClearAllDialog(false);
+        toast.success(`Cleared ${data.deletedCount} line(s) from queue`);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to clear queue");
+      }
+    } catch (error) {
+      console.error("Error clearing all lines:", error);
+      toast.error("Failed to clear queue");
+    } finally {
+      setIsClearingAll(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString();
