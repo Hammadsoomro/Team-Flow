@@ -108,12 +108,15 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     // Create socket connection
-    const socket = io(window.location.origin, {
+    const socketUrl = window.location.origin;
+    const socket = io(socketUrl, {
       auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 10,
+      transports: ["websocket", "polling"],
+      path: "/socket.io/",
     });
 
     socketRef.current = socket;
