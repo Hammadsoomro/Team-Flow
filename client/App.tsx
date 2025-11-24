@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import AIAssistant from "./pages/AIAssistant";
 import NumbersSorter from "./pages/NumbersSorter";
 import NumbersInbox from "./pages/NumbersInbox";
 import QueuedList from "./pages/QueuedList";
