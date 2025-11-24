@@ -5,6 +5,7 @@ import { ChatContactList } from "@/components/chat/ChatContactList";
 import { ChatArea } from "@/components/chat/ChatArea";
 import type { User, ChatGroup } from "@shared/api";
 import { io, Socket } from "socket.io-client";
+import { toast } from "sonner";
 
 interface ChatConversation {
   type: "group" | "direct";
@@ -42,40 +43,74 @@ export default function TeamChat() {
 
     socketRef.current = socket;
 
-    // Listen for new messages from other users
-    socket.on("new-message", (data: any) => {
-      console.log("[TeamChat] Received message:", data);
+    // Listen for new messages from other users (setup only once)
+    const handleNewMessage = (data: any) => {
+      console.log(
+        "[TeamChat] Received message from",
+        data.senderName,
+        "in chat",
+        data.chatId,
+      );
 
+      // Don't process messages from current user
+      if (data.sender === user._id) {
+        console.log("[TeamChat] Ignoring own message");
+        return;
+      }
+
+      // Update conversations list
       setConversations((prev) => {
         const updated = [...prev];
         const convIndex = updated.findIndex((c) => c.id === data.chatId);
 
         if (convIndex !== -1) {
           const conversation = updated[convIndex];
-
-          // Only increment unread if this message is not from current user and chat is not selected
-          if (data.sender !== user._id && selectedChat?.id !== data.chatId) {
-            conversation.unreadCount = (conversation.unreadCount || 0) + 1;
-            console.log(
-              `[TeamChat] Unread count updated for ${conversation.name}: ${conversation.unreadCount}`,
-            );
-          }
-
           conversation.lastMessageTime = data.timestamp;
 
           // Move conversation to top
           const [moved] = updated.splice(convIndex, 1);
           updated.unshift(moved);
+
+          return updated;
         }
 
-        return updated;
+        return prev;
       });
 
-      // Play notification sound if message is not from current user
-      if (data.sender !== user._id) {
-        playNotificationSound();
-      }
-    });
+      // Check current selected chat and handle notifications
+      setSelectedChat((currentSelected) => {
+        const isCurrentChatSelected = currentSelected?.id === data.chatId;
+
+        // Only show notifications if not viewing this chat
+        if (!isCurrentChatSelected) {
+          // Show toast notification
+          toast.info(`New message from ${data.senderName}`, {
+            description: data.content.substring(0, 100),
+          });
+
+          // Play notification sound
+          playNotificationSound();
+
+          // Increment unread count
+          setConversations((prev) => {
+            const updated = [...prev];
+            const convIndex = updated.findIndex((c) => c.id === data.chatId);
+            if (convIndex !== -1) {
+              updated[convIndex].unreadCount =
+                (updated[convIndex].unreadCount || 0) + 1;
+              console.log(
+                `[TeamChat] Unread: ${updated[convIndex].name} = ${updated[convIndex].unreadCount}`,
+              );
+            }
+            return updated;
+          });
+        }
+
+        return currentSelected;
+      });
+    };
+
+    socket.on("new-message", handleNewMessage);
 
     socket.on("connect", () => {
       console.log("[TeamChat] Socket connected:", socket.id);
@@ -86,11 +121,14 @@ export default function TeamChat() {
     });
 
     return () => {
+      socket.off("new-message", handleNewMessage);
+      socket.off("connect");
+      socket.off("disconnect");
       if (socket) {
         socket.disconnect();
       }
     };
-  }, [token, user?._id, selectedChat?.id]);
+  }, [token, user?._id]);
 
   // Fetch initial team members and group chat
   useEffect(() => {
@@ -159,27 +197,41 @@ export default function TeamChat() {
 
   const playNotificationSound = () => {
     try {
-      // Create a simple beep sound using Web Audio API
+      // Try using Web Audio API for better browser support
       const audioContext = new (window.AudioContext ||
         (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // Resume audio context if suspended (required by some browsers)
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
 
-      // Short beep: frequency 800Hz, duration 200ms
-      oscillator.frequency.value = 800;
-      oscillator.type = "sine";
+      // Create two short beeps for notification
+      const now = audioContext.currentTime;
 
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        audioContext.currentTime + 0.2,
-      );
+      // Beep 1: 800Hz
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
+      osc1.frequency.value = 800;
+      osc1.type = "sine";
+      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
 
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.2);
+      // Beep 2: 1000Hz (higher pitch)
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.value = 1000;
+      osc2.type = "sine";
+      gain2.gain.setValueAtTime(0.3, now + 0.2);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc2.start(now + 0.2);
+      osc2.stop(now + 0.35);
 
       console.log("[TeamChat] Notification sound played");
     } catch (error) {
@@ -227,6 +279,7 @@ export default function TeamChat() {
               <ChatArea
                 selectedChat={selectedChat}
                 token={token}
+                socket={socketRef.current}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
