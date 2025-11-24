@@ -248,12 +248,28 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
         message: error?.message,
         code: error?.code,
         data: error?.data,
+        type: error?.type,
       });
 
       // Show user-friendly error message
       if (errorMessage.includes("token") || errorMessage.includes("auth")) {
         console.error("Authentication error - token may be invalid or expired");
       }
+    });
+
+    socket.on("error", (error: any) => {
+      console.error("Socket.IO error event:", error);
+    });
+
+    socket.on("reconnect_attempt", () => {
+      console.log("Attempting to reconnect to Socket.IO server...");
+    });
+
+    socket.on("reconnect_failed", () => {
+      console.error("Failed to reconnect to Socket.IO server");
+      toast.error("Unable to establish real-time connection. Using fallback mode.", {
+        description: "Some features may not work in real-time",
+      });
     });
 
     socket.on("error", (error: any) => {
