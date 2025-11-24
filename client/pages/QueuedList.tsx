@@ -119,16 +119,50 @@ export default function QueuedList() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <List className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold text-foreground">
-                Queued List
-              </h1>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <List className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-bold text-foreground">
+                  Queued List
+                </h1>
+              </div>
+              {isAdmin && lines.length > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowClearAllDialog(true)}
+                  disabled={isClearingAll}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
             </div>
             <p className="text-muted-foreground">
               View and manage numbers waiting to be claimed by team members
             </p>
           </div>
+
+          {/* Clear All Confirmation Dialog */}
+          <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear All Queued Lines?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all {lines.length} line(s) from the queue. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex gap-3 justify-end">
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearAll}
+                  disabled={isClearingAll}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isClearingAll ? "Clearing..." : "Clear All"}
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Stats Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
