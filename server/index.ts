@@ -80,7 +80,12 @@ export async function createServer() {
       cors: {
         origin: "*",
         methods: ["GET", "POST"],
+        credentials: true,
       },
+      transports: ["websocket", "polling"],
+      pingInterval: 25000,
+      pingTimeout: 60000,
+      allowEIO3: true,
     });
   }
 
