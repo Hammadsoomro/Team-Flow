@@ -108,15 +108,29 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     // Create socket connection
+    // Try WebSocket first, then fall back to polling
     const socketUrl = window.location.origin;
+
+    // For better compatibility with some hosting providers, try polling first
+    // if WebSocket fails
+    const transports = window.location.protocol === "https:"
+      ? ["websocket", "polling"]
+      : ["websocket", "polling"];
+
     const socket = io(socketUrl, {
       auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 10000,
       reconnectionAttempts: 10,
-      transports: ["websocket", "polling"],
+      transports: transports,
       path: "/socket.io/",
+      forceNew: false,
+      multiplex: true,
+      autoConnect: true,
+      // Add explicit WebSocket settings
+      upgrade: true,
+      rememberUpgrade: false,
     });
 
     socketRef.current = socket;
