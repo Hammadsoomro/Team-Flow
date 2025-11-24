@@ -403,12 +403,12 @@ export default function NumbersSorter() {
                       <input
                         type="number"
                         min="1"
-                        max="100"
-                        value={settings.lineCount}
+                        max="15"
+                        value={settings.linesClaim}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            lineCount: parseInt(e.target.value) || 1,
+                            linesClaim: parseInt(e.target.value) || 1,
                           })
                         }
                         className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
@@ -418,8 +418,7 @@ export default function NumbersSorter() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      How many numbers each team member can claim at once
-                      (1-100)
+                      How many lines each team member can claim at once (1-15)
                     </p>
                   </div>
 
