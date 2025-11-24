@@ -45,6 +45,7 @@ import { verifyToken } from "./routes/auth";
 
 export let io: Server;
 let httpServer: http.Server;
+let socketIOInitialized = false;
 
 export function getIO() {
   return io;
