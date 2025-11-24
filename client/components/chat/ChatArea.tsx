@@ -210,6 +210,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("message-edited", (data: any) => {
+      // Only update messages in the current chat
+      const isForCurrentChat = data.chatId === selectedChat.id;
+      if (!isForCurrentChat) {
+        return;
+      }
       setMessages((prev) =>
         prev.map((msg) =>
           msg._id === data.messageId
@@ -224,6 +229,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     });
 
     socket.on("message-deleted", (data: any) => {
+      // Only delete messages from the current chat
+      const isForCurrentChat = data.chatId === selectedChat.id;
+      if (!isForCurrentChat) {
+        return;
+      }
       setMessages((prev) => prev.filter((msg) => msg._id !== data.messageId));
     });
 
