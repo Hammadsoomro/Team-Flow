@@ -409,9 +409,11 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
   const handleTyping = () => {
     if (!socketRef.current) return;
 
+    const chatRoomId = getChatRoomId();
+
     if (!isTyping) {
       socketRef.current.emit("typing", {
-        chatId: selectedChat.id,
+        chatId: chatRoomId,
         userId: user?._id,
         senderName: user?.name || "Unknown",
         isTyping: true,
@@ -428,7 +430,7 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
     typingTimeoutRef.current = setTimeout(() => {
       if (socketRef.current) {
         socketRef.current.emit("typing", {
-          chatId: selectedChat.id,
+          chatId: chatRoomId,
           userId: user?._id,
           senderName: user?.name || "Unknown",
           isTyping: false,
