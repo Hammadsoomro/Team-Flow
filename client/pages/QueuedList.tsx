@@ -143,12 +143,16 @@ export default function QueuedList() {
           </div>
 
           {/* Clear All Confirmation Dialog */}
-          <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+          <AlertDialog
+            open={showClearAllDialog}
+            onOpenChange={setShowClearAllDialog}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Clear All Queued Lines?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete all {lines.length} line(s) from the queue. This action cannot be undone.
+                  This will permanently delete all {lines.length} line(s) from
+                  the queue. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="flex gap-3 justify-end">

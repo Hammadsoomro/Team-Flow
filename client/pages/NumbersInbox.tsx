@@ -292,7 +292,6 @@ export default function NumbersInbox() {
             </div>
           </Card>
 
-
           {/* Claimed Lines Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">

@@ -116,7 +116,7 @@ export default function NumbersSorter() {
       const queuedLines = new Set(
         (queuedData.lines || [])
           .map((line: any) => line.content.trim().toLowerCase())
-          .filter((line: string) => line.length > 0)
+          .filter((line: string) => line.length > 0),
       );
 
       // Fetch history entries
@@ -130,7 +130,7 @@ export default function NumbersSorter() {
       const historyLines = new Set(
         (historyData.entries || [])
           .map((entry: any) => entry.content.trim().toLowerCase())
-          .filter((line: string) => line.length > 0)
+          .filter((line: string) => line.length > 0),
       );
 
       // Get first 15 words of each line for comparison
