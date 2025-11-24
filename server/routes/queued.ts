@@ -102,6 +102,39 @@ export const clearQueuedLine: RequestHandler = async (req, res) => {
   }
 };
 
+// Clear all queued lines
+export const clearAllQueuedLines: RequestHandler = async (req, res) => {
+  try {
+    const teamId = (req as any).teamId;
+    const userId = (req as any).userId;
+
+    if (!teamId || !userId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    // Verify user is admin
+    const collections = getCollections();
+    const user = await collections.users.findOne({
+      _id: new ObjectId(userId),
+    });
+
+    if (!user || user.role !== "admin") {
+      res.status(403).json({ error: "Only admins can clear all queued lines" });
+      return;
+    }
+
+    const result = await collections.queuedLines.deleteMany({
+      teamId,
+    });
+
+    res.json({ success: true, deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error("Clear all queued lines error:", error);
+    res.status(400).json({ error: "Failed to clear all lines" });
+  }
+};
+
 // Claim lines - move from queued to history
 export const claimLines: RequestHandler = async (req, res) => {
   try {

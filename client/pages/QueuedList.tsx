@@ -2,8 +2,18 @@ import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { List, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 import type { QueuedLine } from "@shared/api";
 
 export default function QueuedList() {
@@ -11,6 +21,8 @@ export default function QueuedList() {
   const [lines, setLines] = useState<QueuedLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [isClearingAll, setIsClearingAll] = useState(false);
 
   // Fetch queued lines
   useEffect(() => {
@@ -66,6 +78,33 @@ export default function QueuedList() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (!token) return;
+
+    try {
+      setIsClearingAll(true);
+      const response = await fetch("/api/queued", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLines([]);
+        setShowClearAllDialog(false);
+        toast.success(`Cleared ${data.deletedCount} line(s) from queue`);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to clear queue");
+      }
+    } catch (error) {
+      console.error("Error clearing all lines:", error);
+      toast.error("Failed to clear queue");
+    } finally {
+      setIsClearingAll(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString();
@@ -80,16 +119,54 @@ export default function QueuedList() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <List className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold text-foreground">
-                Queued List
-              </h1>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <List className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-bold text-foreground">
+                  Queued List
+                </h1>
+              </div>
+              {isAdmin && lines.length > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowClearAllDialog(true)}
+                  disabled={isClearingAll}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
             </div>
             <p className="text-muted-foreground">
               View and manage numbers waiting to be claimed by team members
             </p>
           </div>
+
+          {/* Clear All Confirmation Dialog */}
+          <AlertDialog
+            open={showClearAllDialog}
+            onOpenChange={setShowClearAllDialog}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear All Queued Lines?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all {lines.length} line(s) from
+                  the queue. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex gap-3 justify-end">
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearAll}
+                  disabled={isClearingAll}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isClearingAll ? "Clearing..." : "Clear All"}
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Stats Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

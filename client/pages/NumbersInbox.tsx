@@ -186,7 +186,7 @@ export default function NumbersInbox() {
         claimedByName: user.name,
       }));
 
-      setClaimedLines([...newClaimedLines, ...claimedLines]);
+      setClaimedLines(newClaimedLines);
 
       // Update queued lines count
       setQueuedLinesCount(Math.max(0, queuedLinesCount - data.claimedCount));
@@ -238,17 +238,10 @@ export default function NumbersInbox() {
           {/* Claim Card */}
           <Card className="mb-8 p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-1">
-                    Claim Lines
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {queuedLinesCount === 0
-                      ? "No lines available in the queue"
-                      : `${queuedLinesCount} line${queuedLinesCount !== 1 ? "s" : ""} available - Claim ${linesClaim} line${linesClaim !== 1 ? "s" : ""} from the queue`}
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-1">
+                  Claim Lines
+                </h2>
               </div>
 
               {cooldownUntil && remainingTime && (
@@ -298,34 +291,6 @@ export default function NumbersInbox() {
               </p>
             </div>
           </Card>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="p-6">
-              <div className="text-sm text-muted-foreground mb-1">
-                Lines in Queue
-              </div>
-              <div className="text-3xl font-bold text-foreground">
-                {queuedLinesCount}
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="text-sm text-muted-foreground mb-1">
-                Total Claimed
-              </div>
-              <div className="text-3xl font-bold text-foreground">
-                {claimedLines.length}
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="text-sm text-muted-foreground mb-1">
-                Claim Size
-              </div>
-              <div className="text-3xl font-bold text-primary">
-                {linesClaim} line{linesClaim !== 1 ? "s" : ""}
-              </div>
-            </Card>
-          </div>
 
           {/* Claimed Lines Section */}
           <div className="space-y-4">
