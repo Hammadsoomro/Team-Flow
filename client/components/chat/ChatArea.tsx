@@ -272,10 +272,6 @@ export function ChatArea({ selectedChat, token, onNewMessage }: ChatAreaProps) {
       });
     });
 
-    socket.on("error", (error: any) => {
-      console.error("WebSocket error:", error);
-    });
-
     return () => {
       if (socket) {
         socket.emit("leave-chat", { chatId: selectedChat.id });
