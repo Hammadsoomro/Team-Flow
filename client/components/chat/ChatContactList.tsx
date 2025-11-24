@@ -35,12 +35,9 @@ const getInitials = (name: string) => {
 };
 
 export function ChatContactList({
-  members,
-  groupChat,
+  conversations,
   selectedChat,
-  onSelectMember,
-  onSelectGroup,
-  unreadCounts = {},
+  onSelectChat,
 }: ChatContactListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -52,88 +49,63 @@ export function ChatContactList({
       {/* Contacts List */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
-          {/* Group Chat */}
-          {groupChat && (
-            <button
-              onClick={onSelectGroup}
-              className={`w-full p-3 rounded-lg transition-colors flex items-center gap-3 ${
-                selectedChat?.type === "group" &&
-                selectedChat?.id === groupChat._id
-                  ? "bg-primary/10"
-                  : "hover:bg-muted"
-              }`}
-            >
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center relative">
-                  <Users className="h-5 w-5 text-primary" />
-                  {unreadCounts[groupChat._id] ? (
+          {conversations.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageCircle className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No conversations yet
+              </p>
+            </div>
+          ) : (
+            conversations.map((conversation) => (
+              <button
+                key={conversation.id}
+                onClick={() => onSelectChat(conversation)}
+                className={`w-full p-3 rounded-lg transition-colors flex items-center gap-3 ${
+                  selectedChat?.id === conversation.id
+                    ? "bg-primary/10"
+                    : "hover:bg-muted"
+                }`}
+              >
+                <div className="relative flex-shrink-0">
+                  {conversation.type === "group" ? (
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                  ) : (
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={
+                          conversation.member?.profilePictureUrl ||
+                          conversation.member?.profilePicture
+                        }
+                      />
+                      <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                        {getInitials(conversation.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  {conversation.unreadCount > 0 && (
                     <Badge
                       variant="default"
                       className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
                     >
-                      {unreadCounts[groupChat._id]}
+                      {conversation.unreadCount}
                     </Badge>
-                  ) : null}
+                  )}
                 </div>
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-medium text-sm">{groupChat.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {groupChat.members.length} members
-                </p>
-              </div>
-            </button>
-          )}
-
-          {/* Divider */}
-          {groupChat && members.length > 0 && (
-            <div className="my-2 border-t border-border" />
-          )}
-
-          {/* Direct Messages */}
-          {members.map((member) => (
-            <button
-              key={member._id}
-              onClick={() => onSelectMember(member)}
-              className={`w-full p-3 rounded-lg transition-colors flex items-center gap-3 ${
-                selectedChat?.type === "direct" &&
-                selectedChat?.id === member._id
-                  ? "bg-primary/10"
-                  : "hover:bg-muted"
-              }`}
-            >
-              <div className="relative">
-                <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage
-                    src={member.profilePictureUrl || member.profilePicture}
-                  />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                    {getInitials(member.name)}
-                  </AvatarFallback>
-                </Avatar>
-                {unreadCounts[member._id] ? (
-                  <Badge
-                    variant="default"
-                    className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                  >
-                    {unreadCounts[member._id]}
-                  </Badge>
-                ) : null}
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-medium text-sm">{member.name}</p>
-                <p className="text-xs text-muted-foreground">{member.email}</p>
-              </div>
-            </button>
-          ))}
-
-          {members.length === 0 && (
-            <div className="text-center py-8">
-              <MessageCircle className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No team members yet
-              </p>
-            </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {conversation.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {conversation.type === "group"
+                      ? `${conversation.group?.members.length || 0} members`
+                      : conversation.member?.email}
+                  </p>
+                </div>
+              </button>
+            ))
           )}
         </div>
       </ScrollArea>
