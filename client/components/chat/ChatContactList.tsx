@@ -5,17 +5,24 @@ import { Users, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { User, ChatGroup } from "@shared/api";
 
+interface ChatConversation {
+  type: "group" | "direct";
+  id: string;
+  name: string;
+  unreadCount: number;
+  lastMessageTime?: string;
+  member?: User;
+  group?: ChatGroup;
+}
+
 interface ChatContactListProps {
-  members: User[];
-  groupChat: ChatGroup | null;
+  conversations: ChatConversation[];
   selectedChat: {
     type: "group" | "direct";
     id: string;
     name: string;
   } | null;
-  onSelectMember: (member: User) => void;
-  onSelectGroup: () => void;
-  unreadCounts?: { [key: string]: number };
+  onSelectChat: (conversation: ChatConversation) => void;
 }
 
 const getInitials = (name: string) => {
